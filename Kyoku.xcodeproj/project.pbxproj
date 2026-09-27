@@ -1,0 +1,475 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A100000000000000000000001 /* KyokuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000001 /* KyokuApp.swift */; };
+		A100000000000000000000002 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000002 /* AppContainer.swift */; };
+		A100000000000000000000003 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000003 /* RootView.swift */; };
+		A100000000000000000000004 /* KyokuLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000004 /* KyokuLogger.swift */; };
+		A100000000000000000000005 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000005 /* AppSettings.swift */; };
+		A100000000000000000000006 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000006 /* Database.swift */; };
+		A100000000000000000000007 /* Schema.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000007 /* Schema.swift */; };
+		A100000000000000000000008 /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000008 /* Track.swift */; };
+		A100000000000000000000009 /* SyncJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000009 /* SyncJob.swift */; };
+		A100000000000000000000010 /* DownloadProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000010 /* DownloadProfile.swift */; };
+		A100000000000000000000011 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000011 /* LibraryStore.swift */; };
+		A100000000000000000000012 /* PlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000012 /* PlayerService.swift */; };
+		A100000000000000000000013 /* DownloadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000013 /* DownloadEngine.swift */; };
+		A100000000000000000000014 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000014 /* ProcessRunner.swift */; };
+		A100000000000000000000015 /* SpotDLEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000015 /* SpotDLEngine.swift */; };
+		A100000000000000000000016 /* MusicFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000016 /* MusicFolderAccess.swift */; };
+		A100000000000000000000017 /* SyncScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000017 /* SyncScheduler.swift */; };
+		A100000000000000000000018 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000018 /* HomeView.swift */; };
+		A100000000000000000000019 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000019 /* SettingsView.swift */; };
+		A100000000000000000000020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000020 /* Assets.xcassets */; };
+		A100000000000000000000021 /* Kyoku.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000021 /* Kyoku.entitlements */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B100000000000000000000001 /* KyokuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyokuApp.swift; sourceTree = "<group>"; };
+		B100000000000000000000002 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
+		B100000000000000000000003 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B100000000000000000000004 /* KyokuLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyokuLogger.swift; sourceTree = "<group>"; };
+		B100000000000000000000005 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		B100000000000000000000006 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		B100000000000000000000007 /* Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schema.swift; sourceTree = "<group>"; };
+		B100000000000000000000008 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		B100000000000000000000009 /* SyncJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncJob.swift; sourceTree = "<group>"; };
+		B100000000000000000000010 /* DownloadProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadProfile.swift; sourceTree = "<group>"; };
+		B100000000000000000000011 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		B100000000000000000000012 /* PlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerService.swift; sourceTree = "<group>"; };
+		B100000000000000000000013 /* DownloadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngine.swift; sourceTree = "<group>"; };
+		B100000000000000000000014 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
+		B100000000000000000000015 /* SpotDLEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDLEngine.swift; sourceTree = "<group>"; };
+		B100000000000000000000016 /* MusicFolderAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicFolderAccess.swift; sourceTree = "<group>"; };
+		B100000000000000000000017 /* SyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncScheduler.swift; sourceTree = "<group>"; };
+		B100000000000000000000018 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B100000000000000000000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B100000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B100000000000000000000021 /* Kyoku.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kyoku.entitlements; sourceTree = "<group>"; };
+		D000000000000000000000001 /* Kyoku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kyoku.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C100000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C000000000000000000000001 /* Kyoku */ = {
+			isa = PBXGroup;
+			children = (
+				C000000000000000000000002 /* Kyoku */,
+				C000000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C000000000000000000000002 /* Kyoku */ = {
+			isa = PBXGroup;
+			children = (
+				C000000000000000000000004 /* App */,
+				C000000000000000000000005 /* Core */,
+				C000000000000000000000006 /* Views */,
+				C000000000000000000000007 /* Resources */,
+			);
+			path = Kyoku;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D000000000000000000000001 /* Kyoku.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000004 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000001 /* KyokuApp.swift */,
+				B100000000000000000000002 /* AppContainer.swift */,
+				B100000000000000000000003 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000005 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C000000000000000000000008 /* Logging */,
+				C000000000000000000000009 /* Settings */,
+				C000000000000000000000010 /* Database */,
+				C000000000000000000000011 /* Models */,
+				C000000000000000000000012 /* Library */,
+				C000000000000000000000013 /* Player */,
+				C000000000000000000000014 /* Downloads */,
+				C000000000000000000000015 /* Filesystem */,
+				C000000000000000000000016 /* Sync */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000006 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C000000000000000000000017 /* Home */,
+				C000000000000000000000018 /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000007 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000020 /* Assets.xcassets */,
+				B100000000000000000000021 /* Kyoku.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000008 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000004 /* KyokuLogger.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000009 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000005 /* AppSettings.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000010 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000006 /* Database.swift */,
+				B100000000000000000000007 /* Schema.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000011 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000008 /* Track.swift */,
+				B100000000000000000000009 /* SyncJob.swift */,
+				B100000000000000000000010 /* DownloadProfile.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000012 /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000011 /* LibraryStore.swift */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000013 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000012 /* PlayerService.swift */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000014 /* Downloads */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000013 /* DownloadEngine.swift */,
+				B100000000000000000000014 /* ProcessRunner.swift */,
+				B100000000000000000000015 /* SpotDLEngine.swift */,
+			);
+			path = Downloads;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000015 /* Filesystem */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000016 /* MusicFolderAccess.swift */,
+			);
+			path = Filesystem;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000016 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000017 /* SyncScheduler.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000017 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000018 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000018 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000019 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E000000000000000000000001 /* Kyoku */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F000000000000000000000001 /* Build configuration list for PBXNativeTarget "Kyoku" */;
+			buildPhases = (
+				C100000000000000000000002 /* Sources */,
+				C100000000000000000000001 /* Frameworks */,
+				C100000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Kyoku;
+			productName = Kyoku;
+			productReference = D000000000000000000000001 /* Kyoku.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F000000000000000000000003 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					E000000000000000000000001 /* Kyoku */ = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = F000000000000000000000002 /* Build configuration list for PBXProject "Kyoku" */;
+			compatibilityVersion = "Xcode 26.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = C000000000000000000000001 /* Kyoku */;
+			productRefGroup = C000000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E000000000000000000000001 /* Kyoku */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C100000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000020 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C100000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A100000000000000000000001 /* KyokuApp.swift in Sources */,
+				A100000000000000000000002 /* AppContainer.swift in Sources */,
+				A100000000000000000000003 /* RootView.swift in Sources */,
+				A100000000000000000000004 /* KyokuLogger.swift in Sources */,
+				A100000000000000000000005 /* AppSettings.swift in Sources */,
+				A100000000000000000000006 /* Database.swift in Sources */,
+				A100000000000000000000007 /* Schema.swift in Sources */,
+				A100000000000000000000008 /* Track.swift in Sources */,
+				A100000000000000000000009 /* SyncJob.swift in Sources */,
+				A100000000000000000000010 /* DownloadProfile.swift in Sources */,
+				A100000000000000000000011 /* LibraryStore.swift in Sources */,
+				A100000000000000000000012 /* PlayerService.swift in Sources */,
+				A100000000000000000000013 /* DownloadEngine.swift in Sources */,
+				A100000000000000000000014 /* ProcessRunner.swift in Sources */,
+				A100000000000000000000015 /* SpotDLEngine.swift in Sources */,
+				A100000000000000000000016 /* MusicFolderAccess.swift in Sources */,
+				A100000000000000000000017 /* SyncScheduler.swift in Sources */,
+				A100000000000000000000018 /* HomeView.swift in Sources */,
+				A100000000000000000000019 /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		G000000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		G000000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		G000000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = Kyoku/Resources/Kyoku.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Kyoku;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_LSMusicLibraryUsageDescription = "Kyoku indexes your local music library to display songs, albums, and artists.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Kyoku.";
+				INFOPLIST_KEY_NSMainStoryboardFile = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyoku.app;
+				PRODUCT_NAME = Kyoku;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		G000000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = Kyoku/Resources/Kyoku.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Kyoku;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_LSMusicLibraryUsageDescription = "Kyoku indexes your local music library to display songs, albums, and artists.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Kyoku.";
+				INFOPLIST_KEY_NSMainStoryboardFile = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyoku.app;
+				PRODUCT_NAME = Kyoku;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F000000000000000000000002 /* Build configuration list for PBXProject "Kyoku" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G000000000000000000000001 /* Debug */,
+				G000000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F000000000000000000000001 /* Build configuration list for PBXNativeTarget "Kyoku" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				G000000000000000000000003 /* Debug */,
+				G000000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F000000000000000000000003 /* Project object */;
+}
