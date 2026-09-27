@@ -8,7 +8,7 @@ final class Database {
     private let path: String
     private let db: OpaquePointer
 
-    static let schemaVersion = 1
+    static let schemaVersion = 2
 
     init(path: String? = nil) throws {
         let fm = FileManager.default
@@ -56,9 +56,23 @@ final class Database {
         try run("PRAGMA journal_mode=WAL;", [])
         try run("PRAGMA foreign_keys=ON;", [])
         let current = (try fetch("PRAGMA user_version;", []).first?.values.first).map { $0.integer } ?? 0
-        if current < Self.schemaVersion {
+        if current < 1 {
             for stmt in Schema.v1 { try run(stmt, []) }
-            try run("PRAGMA user_version=1;", [])
+        }
+        if current < 2 {
+            // ALTER TABLE ... ADD COLUMN fails if the column exists;
+            // tolerate that so re-runs and partial migrations converge.
+            for stmt in Schema.v2 {
+                do {
+                    try run(stmt, [])
+                } catch DatabaseError.stepFailed(let message)
+                    where message.contains("duplicate column name") {
+                    continue
+                }
+            }
+        }
+        if current < Self.schemaVersion {
+            try run("PRAGMA user_version=\(Self.schemaVersion);", [])
         }
     }
 

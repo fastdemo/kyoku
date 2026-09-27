@@ -20,12 +20,16 @@
 		A100000000000000000000011 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000011 /* LibraryStore.swift */; };
 		A100000000000000000000012 /* PlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000012 /* PlayerService.swift */; };
 		A100000000000000000000013 /* DownloadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000013 /* DownloadEngine.swift */; };
+		A100000000000000000000022 /* DownloadEngineError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000022 /* DownloadEngineError.swift */; };
 		A100000000000000000000014 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000014 /* ProcessRunner.swift */; };
 		A100000000000000000000015 /* SpotDLEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000015 /* SpotDLEngine.swift */; };
 		A100000000000000000000016 /* MusicFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000016 /* MusicFolderAccess.swift */; };
 		A100000000000000000000017 /* SyncScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000017 /* SyncScheduler.swift */; };
 		A100000000000000000000018 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000018 /* HomeView.swift */; };
 		A100000000000000000000019 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000019 /* SettingsView.swift */; };
+		A100000000000000000000023 /* DownloadQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000023 /* DownloadQueue.swift */; };
+		A100000000000000000000024 /* QueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000024 /* QueueView.swift */; };
+		A100000000000000000000025 /* SourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000025 /* SourcesView.swift */; };
 		A100000000000000000000020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000020 /* Assets.xcassets */; };
 		A100000000000000000000021 /* Kyoku.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000021 /* Kyoku.entitlements */; };
 /* End PBXBuildFile section */
@@ -44,12 +48,16 @@
 		B100000000000000000000011 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
 		B100000000000000000000012 /* PlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerService.swift; sourceTree = "<group>"; };
 		B100000000000000000000013 /* DownloadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngine.swift; sourceTree = "<group>"; };
+		B100000000000000000000022 /* DownloadEngineError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngineError.swift; sourceTree = "<group>"; };
 		B100000000000000000000014 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		B100000000000000000000015 /* SpotDLEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDLEngine.swift; sourceTree = "<group>"; };
 		B100000000000000000000016 /* MusicFolderAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicFolderAccess.swift; sourceTree = "<group>"; };
 		B100000000000000000000017 /* SyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncScheduler.swift; sourceTree = "<group>"; };
 		B100000000000000000000018 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B100000000000000000000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B100000000000000000000023 /* DownloadQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadQueue.swift; sourceTree = "<group>"; };
+		B100000000000000000000024 /* QueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueView.swift; sourceTree = "<group>"; };
+		B100000000000000000000025 /* SourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourcesView.swift; sourceTree = "<group>"; };
 		B100000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B100000000000000000000021 /* Kyoku.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kyoku.entitlements; sourceTree = "<group>"; };
 		D000000000000000000000001 /* Kyoku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kyoku.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,6 +132,8 @@
 			children = (
 				C000000000000000000000017 /* Home */,
 				C000000000000000000000018 /* Settings */,
+				C000000000000000000000019 /* Downloads */,
+				C000000000000000000000020 /* Sources */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -192,8 +202,10 @@
 			isa = PBXGroup;
 			children = (
 				B100000000000000000000013 /* DownloadEngine.swift */,
+				B100000000000000000000022 /* DownloadEngineError.swift */,
 				B100000000000000000000014 /* ProcessRunner.swift */,
 				B100000000000000000000015 /* SpotDLEngine.swift */,
+				B100000000000000000000023 /* DownloadQueue.swift */,
 			);
 			path = Downloads;
 			sourceTree = "<group>";
@@ -228,6 +240,22 @@
 				B100000000000000000000019 /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000019 /* Downloads */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000024 /* QueueView.swift */,
+			);
+			path = Downloads;
+			sourceTree = "<group>";
+		};
+		C000000000000000000000020 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				B100000000000000000000025 /* SourcesView.swift */,
+			);
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -311,12 +339,16 @@
 				A100000000000000000000011 /* LibraryStore.swift in Sources */,
 				A100000000000000000000012 /* PlayerService.swift in Sources */,
 				A100000000000000000000013 /* DownloadEngine.swift in Sources */,
+				A100000000000000000000022 /* DownloadEngineError.swift in Sources */,
 				A100000000000000000000014 /* ProcessRunner.swift in Sources */,
 				A100000000000000000000015 /* SpotDLEngine.swift in Sources */,
 				A100000000000000000000016 /* MusicFolderAccess.swift in Sources */,
 				A100000000000000000000017 /* SyncScheduler.swift in Sources */,
 				A100000000000000000000018 /* HomeView.swift in Sources */,
 				A100000000000000000000019 /* SettingsView.swift in Sources */,
+				A100000000000000000000023 /* DownloadQueue.swift in Sources */,
+				A100000000000000000000024 /* QueueView.swift in Sources */,
+				A100000000000000000000025 /* SourcesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

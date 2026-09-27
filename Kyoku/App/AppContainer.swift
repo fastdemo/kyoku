@@ -13,6 +13,7 @@ final class AppContainer: ObservableObject {
     let library: LibraryStore
     let player: PlayerService
     let downloads: any DownloadEngine
+    let queue: DownloadQueue
     let syncScheduler: SyncScheduler
     let musicFolderAccess: MusicFolderAccess
     let logger = KyokuLogger(subsystem: "app")
@@ -31,12 +32,19 @@ final class AppContainer: ObservableObject {
         let downloads: any DownloadEngine = SpotDLEngine(runner: runner)
         let syncScheduler = SyncScheduler()
         let musicFolderAccess = MusicFolderAccess(settings: settings)
+        let queue = DownloadQueue(
+            database: database,
+            engine: downloads,
+            library: library,
+            musicFolderAccess: musicFolderAccess
+        )
 
         self.settings = settings
         self.database = database
         self.library = library
         self.player = player
         self.downloads = downloads
+        self.queue = queue
         self.syncScheduler = syncScheduler
         self.musicFolderAccess = musicFolderAccess
     }

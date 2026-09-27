@@ -26,8 +26,12 @@ struct RootView: View {
             switch selection ?? .home {
             case .home:
                 HomeView()
-            case .songs, .queue, .sources:
-                PlaceholderView(item: selection ?? .home)
+            case .songs:
+                PlaceholderView(item: .songs)
+            case .queue:
+                QueueView()
+            case .sources:
+                SourcesView()
             }
         }
         .frame(minWidth: 800, minHeight: 550)

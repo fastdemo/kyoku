@@ -25,4 +25,17 @@ enum Schema {
         );
         """,
     ]
+
+    /// Phase 1: queue persistence columns + library metadata columns.
+    /// Additive ALTER TABLEs only; existing installs migrate in place.
+    /// New installs run v1 then v2 (idempotent by inspection).
+    static let v2: [String] = [
+        "ALTER TABLE download_tasks ADD COLUMN resolved_json TEXT;",
+        "ALTER TABLE download_tasks ADD COLUMN last_error TEXT;",
+        "ALTER TABLE download_tasks ADD COLUMN output_path TEXT;",
+        "ALTER TABLE tracks ADD COLUMN album_artist TEXT NOT NULL DEFAULT '';",
+        "ALTER TABLE tracks ADD COLUMN duration INTEGER NOT NULL DEFAULT 0;",
+        "ALTER TABLE tracks ADD COLUMN source_url TEXT;",
+        "ALTER TABLE tracks ADD COLUMN cover_url TEXT;",
+    ]
 }
