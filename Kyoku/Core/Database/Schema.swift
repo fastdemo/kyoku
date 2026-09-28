@@ -38,4 +38,69 @@ enum Schema {
         "ALTER TABLE tracks ADD COLUMN source_url TEXT;",
         "ALTER TABLE tracks ADD COLUMN cover_url TEXT;",
     ]
+
+    /// Phase 2: richer track metadata + normalized library tables.
+    /// Additive only. New tables are empty on migrate; album/artist rows
+    /// are backfilled lazily by LibraryStore (derive-on-read + persist),
+    /// so no data migration of existing tracks is required.
+    static let v3tables: [String] = [
+        """
+        CREATE TABLE IF NOT EXISTS albums (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            artist TEXT NOT NULL DEFAULT '',
+            artwork_path TEXT,
+            release_date TEXT,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS artists (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            artwork_path TEXT,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS playlists (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS playlist_tracks (
+            playlist_id TEXT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+            track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+            position INTEGER NOT NULL,
+            PRIMARY KEY (playlist_id, track_id)
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS playback_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+            played_at REAL NOT NULL
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_playback_track ON playback_history(track_id);",
+        "CREATE INDEX IF NOT EXISTS idx_playback_time ON playback_history(played_at);",
+    ]
+
+    /// Phase 2: new track columns. All nullable or defaulted.
+    static let v3columns: [String] = [
+        "ALTER TABLE tracks ADD COLUMN track_number INTEGER NOT NULL DEFAULT 0;",
+        "ALTER TABLE tracks ADD COLUMN disc_number INTEGER NOT NULL DEFAULT 0;",
+        "ALTER TABLE tracks ADD COLUMN genre TEXT;",
+        "ALTER TABLE tracks ADD COLUMN release_date TEXT;",
+        "ALTER TABLE tracks ADD COLUMN artwork_path TEXT;",
+        "ALTER TABLE tracks ADD COLUMN play_count INTEGER NOT NULL DEFAULT 0;",
+        "ALTER TABLE tracks ADD COLUMN last_played_at REAL;",
+        "ALTER TABLE tracks ADD COLUMN album_id TEXT REFERENCES albums(id) ON DELETE SET NULL;",
+        "ALTER TABLE tracks ADD COLUMN artist_id TEXT REFERENCES artists(id) ON DELETE SET NULL;",
+    ]
 }

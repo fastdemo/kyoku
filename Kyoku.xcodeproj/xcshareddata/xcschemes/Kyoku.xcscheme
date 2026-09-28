@@ -30,6 +30,17 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E000000000000000000000002"
+               BuildableName = "KyokuTests.xctest"
+               BlueprintName = "KyokuTests"
+               ReferencedContainer = "container:Kyoku.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

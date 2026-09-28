@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		25B74AAD94598FC13ED2D7AD /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBB44EE841D429AEF564E2A /* PlaylistsView.swift */; };
+		356C4C7EB414E7D7C03EB326 /* PlaybackQueuePopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E34D2F833D4923107AD670 /* PlaybackQueuePopover.swift */; };
+		5CE040AD98B81368EA9A7679 /* AlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B144148D6FB2BF02B82FED /* AlbumsView.swift */; };
+		60704145B141D53A5E46B0C3 /* SongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F74EE3BC857776B16D13E5 /* SongsView.swift */; };
+		774A4F53BE550377B27F2D11 /* PlayerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA84AE18B72E074B741390B /* PlayerBar.swift */; };
+		7A314A99AB3DD7D599598AB7 /* PlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BE466DB625E1B1F7B502E6 /* PlaybackService.swift */; };
+		817A4F9ABB129E453809AA3E /* TrackContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D65347B0A32DAAC006C4C1A1 /* TrackContextMenu.swift */; };
+		85524BFB9D5788B2169A34B7 /* ArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCFC4D3F85D59C9DD63AFF87 /* ArtworkView.swift */; };
+		916E4682B48C8A4C2DF58FE6 /* IfPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EFE4690934E662AB1441C75 /* IfPlayer.swift */; };
+		968B4EFE9CF90E475944E2F5 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787845B5A237F80BE4F6BE89 /* SearchView.swift */; };
 		A100000000000000000000001 /* KyokuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000001 /* KyokuApp.swift */; };
 		A100000000000000000000002 /* AppContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000002 /* AppContainer.swift */; };
 		A100000000000000000000003 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000003 /* RootView.swift */; };
@@ -20,21 +30,42 @@
 		A100000000000000000000011 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000011 /* LibraryStore.swift */; };
 		A100000000000000000000012 /* PlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000012 /* PlayerService.swift */; };
 		A100000000000000000000013 /* DownloadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000013 /* DownloadEngine.swift */; };
-		A100000000000000000000022 /* DownloadEngineError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000022 /* DownloadEngineError.swift */; };
 		A100000000000000000000014 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000014 /* ProcessRunner.swift */; };
 		A100000000000000000000015 /* SpotDLEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000015 /* SpotDLEngine.swift */; };
 		A100000000000000000000016 /* MusicFolderAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000016 /* MusicFolderAccess.swift */; };
 		A100000000000000000000017 /* SyncScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000017 /* SyncScheduler.swift */; };
 		A100000000000000000000018 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000018 /* HomeView.swift */; };
 		A100000000000000000000019 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000019 /* SettingsView.swift */; };
+		A100000000000000000000020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000020 /* Assets.xcassets */; };
+		A100000000000000000000021 /* Kyoku.entitlements in None */ = {isa = PBXBuildFile; fileRef = B100000000000000000000021 /* Kyoku.entitlements */; };
+		A100000000000000000000022 /* DownloadEngineError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000022 /* DownloadEngineError.swift */; };
 		A100000000000000000000023 /* DownloadQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000023 /* DownloadQueue.swift */; };
 		A100000000000000000000024 /* QueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000024 /* QueueView.swift */; };
 		A100000000000000000000025 /* SourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000025 /* SourcesView.swift */; };
-		A100000000000000000000020 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000020 /* Assets.xcassets */; };
-		A100000000000000000000021 /* Kyoku.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000021 /* Kyoku.entitlements */; };
+		A8574C31AD5F4ADAABE397CF /* TrackRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A545E196ACCCC534B3F90A /* TrackRow.swift */; };
+		A98F4A308C79506D411B2E05 /* RecentlyAddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 840642108DD5673041A47B4C /* RecentlyAddedView.swift */; };
+		B41141C7A3DE62F25AB5900A /* LibraryIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7A4901BDE8B9F5412508E2 /* LibraryIdentity.swift */; };
+		BFAB4BC5AE28D93F1EC05169 /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711A4FB1BBC3A0DB881BF186 /* NowPlayingView.swift */; };
+		CA704903A7FDCB401749CFB3 /* FileMetadataReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B64F75AF9D28C6199D7533 /* FileMetadataReader.swift */; };
+		ECCD47B8AF4DDAE86D4975D7 /* LibraryModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F94467BB8F0F8D73ECF4DE3 /* LibraryModels.swift */; };
+		EEA140D291919E7467E60F06 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77B4793A3E18A9960A32170 /* ArtistsView.swift */; };
+		C2004DFDD5858CD9910C427D /* LibraryImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */; };
+		AB38CEF06133DECDF84090DA /* PlaybackQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */; };
+		70CE69FB1088117612DBEA08 /* MigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FBEF998FD19F32872A5A1C /* MigrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0EFE4690934E662AB1441C75 /* IfPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IfPlayer.swift; path = Kyoku/Views/Player/IfPlayer.swift; sourceTree = SOURCE_ROOT; };
+		16F74EE3BC857776B16D13E5 /* SongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SongsView.swift; path = Kyoku/Views/Library/SongsView.swift; sourceTree = SOURCE_ROOT; };
+		36B144148D6FB2BF02B82FED /* AlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlbumsView.swift; path = Kyoku/Views/Library/AlbumsView.swift; sourceTree = SOURCE_ROOT; };
+		3B7A4901BDE8B9F5412508E2 /* LibraryIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryIdentity.swift; path = Kyoku/Core/Library/LibraryIdentity.swift; sourceTree = SOURCE_ROOT; };
+		54B64F75AF9D28C6199D7533 /* FileMetadataReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileMetadataReader.swift; path = Kyoku/Core/Library/FileMetadataReader.swift; sourceTree = SOURCE_ROOT; };
+		6AA84AE18B72E074B741390B /* PlayerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlayerBar.swift; path = Kyoku/Views/Player/PlayerBar.swift; sourceTree = SOURCE_ROOT; };
+		711A4FB1BBC3A0DB881BF186 /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NowPlayingView.swift; path = Kyoku/Views/Player/NowPlayingView.swift; sourceTree = SOURCE_ROOT; };
+		787845B5A237F80BE4F6BE89 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchView.swift; path = Kyoku/Views/Library/SearchView.swift; sourceTree = SOURCE_ROOT; };
+		840642108DD5673041A47B4C /* RecentlyAddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecentlyAddedView.swift; path = Kyoku/Views/Library/RecentlyAddedView.swift; sourceTree = SOURCE_ROOT; };
+		8F94467BB8F0F8D73ECF4DE3 /* LibraryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryModels.swift; path = Kyoku/Core/Models/LibraryModels.swift; sourceTree = SOURCE_ROOT; };
+		9BBB44EE841D429AEF564E2A /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaylistsView.swift; path = Kyoku/Views/Library/PlaylistsView.swift; sourceTree = SOURCE_ROOT; };
 		B100000000000000000000001 /* KyokuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyokuApp.swift; sourceTree = "<group>"; };
 		B100000000000000000000002 /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		B100000000000000000000003 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -48,19 +79,29 @@
 		B100000000000000000000011 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
 		B100000000000000000000012 /* PlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerService.swift; sourceTree = "<group>"; };
 		B100000000000000000000013 /* DownloadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngine.swift; sourceTree = "<group>"; };
-		B100000000000000000000022 /* DownloadEngineError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngineError.swift; sourceTree = "<group>"; };
 		B100000000000000000000014 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		B100000000000000000000015 /* SpotDLEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDLEngine.swift; sourceTree = "<group>"; };
 		B100000000000000000000016 /* MusicFolderAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicFolderAccess.swift; sourceTree = "<group>"; };
 		B100000000000000000000017 /* SyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncScheduler.swift; sourceTree = "<group>"; };
 		B100000000000000000000018 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B100000000000000000000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B100000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B100000000000000000000021 /* Kyoku.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kyoku.entitlements; sourceTree = "<group>"; };
+		B100000000000000000000022 /* DownloadEngineError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngineError.swift; sourceTree = "<group>"; };
 		B100000000000000000000023 /* DownloadQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadQueue.swift; sourceTree = "<group>"; };
 		B100000000000000000000024 /* QueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueView.swift; sourceTree = "<group>"; };
 		B100000000000000000000025 /* SourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourcesView.swift; sourceTree = "<group>"; };
-		B100000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B100000000000000000000021 /* Kyoku.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kyoku.entitlements; sourceTree = "<group>"; };
+		B9E34D2F833D4923107AD670 /* PlaybackQueuePopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackQueuePopover.swift; path = Kyoku/Views/Player/PlaybackQueuePopover.swift; sourceTree = SOURCE_ROOT; };
 		D000000000000000000000001 /* Kyoku.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kyoku.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D65347B0A32DAAC006C4C1A1 /* TrackContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrackContextMenu.swift; path = Kyoku/Views/Library/TrackContextMenu.swift; sourceTree = SOURCE_ROOT; };
+		E0A545E196ACCCC534B3F90A /* TrackRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrackRow.swift; path = Kyoku/Views/Library/TrackRow.swift; sourceTree = SOURCE_ROOT; };
+		E4BE466DB625E1B1F7B502E6 /* PlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackService.swift; path = Kyoku/Core/Player/PlaybackService.swift; sourceTree = SOURCE_ROOT; };
+		F77B4793A3E18A9960A32170 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtistsView.swift; path = Kyoku/Views/Library/ArtistsView.swift; sourceTree = SOURCE_ROOT; };
+		FCFC4D3F85D59C9DD63AFF87 /* ArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkView.swift; path = Kyoku/Views/Library/ArtworkView.swift; sourceTree = SOURCE_ROOT; };
+		48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryImportTests.swift; path = KyokuTests/LibraryImportTests.swift; sourceTree = SOURCE_ROOT; };
+		984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackQueueTests.swift; path = KyokuTests/PlaybackQueueTests.swift; sourceTree = SOURCE_ROOT; };
+		35FBEF998FD19F32872A5A1C /* MigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MigrationTests.swift; path = KyokuTests/MigrationTests.swift; sourceTree = SOURCE_ROOT; };
+		53C14A9F6CF71DA48C9DEF8A /* KyokuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KyokuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,11 +115,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C000000000000000000000001 /* Kyoku */ = {
+		C000000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				C000000000000000000000002 /* Kyoku */,
+				2FE1786D690260D86AC6BAD6 /* KyokuTests */,
 				C000000000000000000000003 /* Products */,
+				8F94467BB8F0F8D73ECF4DE3 /* LibraryModels.swift */,
+				3B7A4901BDE8B9F5412508E2 /* LibraryIdentity.swift */,
+				54B64F75AF9D28C6199D7533 /* FileMetadataReader.swift */,
+				E4BE466DB625E1B1F7B502E6 /* PlaybackService.swift */,
+				FCFC4D3F85D59C9DD63AFF87 /* ArtworkView.swift */,
+				D65347B0A32DAAC006C4C1A1 /* TrackContextMenu.swift */,
+				E0A545E196ACCCC534B3F90A /* TrackRow.swift */,
+				16F74EE3BC857776B16D13E5 /* SongsView.swift */,
+				36B144148D6FB2BF02B82FED /* AlbumsView.swift */,
+				F77B4793A3E18A9960A32170 /* ArtistsView.swift */,
+				840642108DD5673041A47B4C /* RecentlyAddedView.swift */,
+				9BBB44EE841D429AEF564E2A /* PlaylistsView.swift */,
+				787845B5A237F80BE4F6BE89 /* SearchView.swift */,
+				6AA84AE18B72E074B741390B /* PlayerBar.swift */,
+				B9E34D2F833D4923107AD670 /* PlaybackQueuePopover.swift */,
+				711A4FB1BBC3A0DB881BF186 /* NowPlayingView.swift */,
+				0EFE4690934E662AB1441C75 /* IfPlayer.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -97,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				D000000000000000000000001 /* Kyoku.app */,
+				53C14A9F6CF71DA48C9DEF8A /* KyokuTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -258,6 +318,16 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		2FE1786D690260D86AC6BAD6 /* KyokuTests */ = {
+			isa = PBXGroup;
+			children = (
+				48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */,
+				984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */,
+				35FBEF998FD19F32872A5A1C /* MigrationTests.swift */,
+			);
+			path = KyokuTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -278,6 +348,47 @@
 			productReference = D000000000000000000000001 /* Kyoku.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C9337B0A1AB37F65544CE38D /* Build configuration list for PBXNativeTarget "KyokuTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E0EDEFFC2C5D1FC91549845 /* Debug */,
+				DAE5B4E6F067FFC503468B72 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34A55CB3A3694BFE62A9AB19 /* KyokuTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9337B0A1AB37F65544CE38D /* Build configuration list for PBXNativeTarget "KyokuTests" */;
+			buildPhases = (
+				046E29B569257A3CB3B350E1 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				00520F274544B4234151648D /* PBXTargetDependency */,
+			);
+			name = KyokuTests;
+			productName = KyokuTests;
+			productReference = 53C14A9F6CF71DA48C9DEF8A /* KyokuTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* Begin PBXTargetDependency section */
+		00520F274544B4234151648D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E000000000000000000000001 /* Kyoku */;
+			targetProxy = 1605D5AEE3E0FDF5ECEA4FAE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+/* Begin PBXContainerItemProxy section */
+		1605D5AEE3E0FDF5ECEA4FAE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F000000000000000000000003 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E000000000000000000000001;
+			remoteInfo = Kyoku;
+		};
+/* End PBXContainerItemProxy section */
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -288,8 +399,12 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					E000000000000000000000001 /* Kyoku */ = {
+					E000000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
+					};
+					34A55CB3A3694BFE62A9AB19 /* KyokuTests */ = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = E000000000000000000000001;
 					};
 				};
 			};
@@ -300,12 +415,13 @@
 			knownRegions = (
 				en,
 			);
-			mainGroup = C000000000000000000000001 /* Kyoku */;
+			mainGroup = C000000000000000000000001;
 			productRefGroup = C000000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				E000000000000000000000001 /* Kyoku */,
+				34A55CB3A3694BFE62A9AB19 /* KyokuTests */,
 			);
 		};
 /* End PBXProject section */
@@ -349,13 +465,40 @@
 				A100000000000000000000023 /* DownloadQueue.swift in Sources */,
 				A100000000000000000000024 /* QueueView.swift in Sources */,
 				A100000000000000000000025 /* SourcesView.swift in Sources */,
+				ECCD47B8AF4DDAE86D4975D7 /* LibraryModels.swift in Sources */,
+				B41141C7A3DE62F25AB5900A /* LibraryIdentity.swift in Sources */,
+				CA704903A7FDCB401749CFB3 /* FileMetadataReader.swift in Sources */,
+				7A314A99AB3DD7D599598AB7 /* PlaybackService.swift in Sources */,
+				85524BFB9D5788B2169A34B7 /* ArtworkView.swift in Sources */,
+				817A4F9ABB129E453809AA3E /* TrackContextMenu.swift in Sources */,
+				A8574C31AD5F4ADAABE397CF /* TrackRow.swift in Sources */,
+				60704145B141D53A5E46B0C3 /* SongsView.swift in Sources */,
+				5CE040AD98B81368EA9A7679 /* AlbumsView.swift in Sources */,
+				EEA140D291919E7467E60F06 /* ArtistsView.swift in Sources */,
+				A98F4A308C79506D411B2E05 /* RecentlyAddedView.swift in Sources */,
+				25B74AAD94598FC13ED2D7AD /* PlaylistsView.swift in Sources */,
+				968B4EFE9CF90E475944E2F5 /* SearchView.swift in Sources */,
+				774A4F53BE550377B27F2D11 /* PlayerBar.swift in Sources */,
+				356C4C7EB414E7D7C03EB326 /* PlaybackQueuePopover.swift in Sources */,
+				BFAB4BC5AE28D93F1EC05169 /* NowPlayingView.swift in Sources */,
+				916E4682B48C8A4C2DF58FE6 /* IfPlayer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		046E29B569257A3CB3B350E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C2004DFDD5858CD9910C427D /* LibraryImportTests.swift in Sources */,
+				AB38CEF06133DECDF84090DA /* PlaybackQueueTests.swift in Sources */,
+				70CE69FB1088117612DBEA08 /* MigrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		G000000000000000000000001 /* Debug */ = {
+		'G000000000000000000000001' = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -389,7 +532,7 @@
 			};
 			name = Debug;
 		};
-		G000000000000000000000002 /* Release */ = {
+		'G000000000000000000000002' = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -416,9 +559,10 @@
 			};
 			name = Release;
 		};
-		G000000000000000000000003 /* Debug */ = {
+		'G000000000000000000000003' = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ENABLE_TESTABILITY = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_ENTITLEMENTS = Kyoku/Resources/Kyoku.entitlements;
@@ -448,7 +592,7 @@
 			};
 			name = Debug;
 		};
-		G000000000000000000000004 /* Release */ = {
+		'G000000000000000000000004' = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -480,23 +624,59 @@
 			};
 			name = Release;
 		};
+		7E0EDEFFC2C5D1FC91549845 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyoku.app.KyokuTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kyoku.app/Contents/MacOS/Kyoku";
+			};
+			name = Debug;
+		};
+		DAE5B4E6F067FFC503468B72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kyoku.app.KyokuTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Kyoku.app/Contents/MacOS/Kyoku";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F000000000000000000000002 /* Build configuration list for PBXProject "Kyoku" */ = {
+		F000000000000000000000001 /* Build configuration list for PBXNativeTarget "Kyoku" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				G000000000000000000000001 /* Debug */,
-				G000000000000000000000002 /* Release */,
+				G000000000000000000000003,
+				G000000000000000000000004,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F000000000000000000000001 /* Build configuration list for PBXNativeTarget "Kyoku" */ = {
+		F000000000000000000000002 /* Build configuration list for PBXProject "Kyoku" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				G000000000000000000000003 /* Debug */,
-				G000000000000000000000004 /* Release */,
+				G000000000000000000000001,
+				G000000000000000000000002,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

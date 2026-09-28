@@ -13,10 +13,11 @@ struct KyokuApp: App {
             RootView()
                 .environmentObject(container)
                 .task {
-                    // Start the download queue worker on the main actor.
-                    // (AppContainer.init is nonisolated, so the queue's
-                    // actor-bound startup is deferred to here.)
+                    // Start actor-bound services on the main actor.
+                    // (AppContainer.init is nonisolated, so actor-bound
+                    // startup is deferred to here.)
                     await container.queue.start()
+                    await container.startPlayer()
                 }
         }
         .commands {

@@ -8,7 +8,7 @@ final class Database {
     private let path: String
     private let db: OpaquePointer
 
-    static let schemaVersion = 2
+    static let schemaVersion = 3
 
     init(path: String? = nil) throws {
         let fm = FileManager.default
@@ -63,6 +63,17 @@ final class Database {
             // ALTER TABLE ... ADD COLUMN fails if the column exists;
             // tolerate that so re-runs and partial migrations converge.
             for stmt in Schema.v2 {
+                do {
+                    try run(stmt, [])
+                } catch DatabaseError.stepFailed(let message)
+                    where message.contains("duplicate column name") {
+                    continue
+                }
+            }
+        }
+        if current < 3 {
+            for stmt in Schema.v3tables { try run(stmt, []) }
+            for stmt in Schema.v3columns {
                 do {
                     try run(stmt, [])
                 } catch DatabaseError.stepFailed(let message)

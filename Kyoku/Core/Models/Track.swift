@@ -1,23 +1,41 @@
 import Foundation
 
-/// Phase 1 track model: discovery metadata (album artist, duration,
-/// source/cover URLs) added for the download pipeline. Lyrics, match
-/// confidence, and Apple Music IDs arrive in later phases.
+/// Phase 2 track model: full library metadata. New fields are nullable
+/// or defaulted so the v2→v3 migration backfills safely.
 struct Track: Identifiable, Hashable, Sendable {
     let id: String
     var title: String
     var artist: String
     var album: String
     var albumArtist: String
+    var trackNumber: Int
+    var discNumber: Int
+    var genre: String?
     /// Duration in seconds (from spotDL metadata).
     var duration: Int
+    /// Release date as written by the provider ("2023-04-12", "2023", …).
+    /// Kept as text: providers are inconsistent, parsing loses info.
+    var releaseDate: String?
     /// Spotify URL this track was discovered from, if any.
     var sourceURL: String?
     /// Remote artwork URL (spotDL cover_url). Cached locally in Phase 2.
     var coverURL: String?
+    /// Managed local artwork cache path. Nil = use embedded/file art.
+    var artworkPath: String?
     var localPath: String?
+    /// Plays counted only after the meaningful-play threshold (see
+    /// PlaybackService.recordPlayIfEligible).
+    var playCount: Int
+    var lastPlayedAt: Date?
+    var albumID: String?
+    var artistID: String?
     var createdAt: Date
     var updatedAt: Date
+
+    /// True when the file exists on disk right now. Refreshed by
+    /// reconcile(); views use it to dim missing tracks instead of
+    /// crashing playback.
+    var isAvailable: Bool = true
 
     init(
         id: String = UUID().uuidString,
@@ -25,10 +43,19 @@ struct Track: Identifiable, Hashable, Sendable {
         artist: String = "",
         album: String = "",
         albumArtist: String = "",
+        trackNumber: Int = 0,
+        discNumber: Int = 0,
+        genre: String? = nil,
         duration: Int = 0,
+        releaseDate: String? = nil,
         sourceURL: String? = nil,
         coverURL: String? = nil,
+        artworkPath: String? = nil,
         localPath: String? = nil,
+        playCount: Int = 0,
+        lastPlayedAt: Date? = nil,
+        albumID: String? = nil,
+        artistID: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -37,10 +64,19 @@ struct Track: Identifiable, Hashable, Sendable {
         self.artist = artist
         self.album = album
         self.albumArtist = albumArtist
+        self.trackNumber = trackNumber
+        self.discNumber = discNumber
+        self.genre = genre
         self.duration = duration
+        self.releaseDate = releaseDate
         self.sourceURL = sourceURL
         self.coverURL = coverURL
+        self.artworkPath = artworkPath
         self.localPath = localPath
+        self.playCount = playCount
+        self.lastPlayedAt = lastPlayedAt
+        self.albumID = albumID
+        self.artistID = artistID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -104,11 +140,20 @@ struct ResolvedSong: Hashable, Sendable, Codable {
     }
 
     /// Convert to a library Track. localPath is filled in after download.
+    /// Precedence: ResolvedSong is primary; file tags only fill duration
+    /// when the provider reports 0 (see LibraryStore.importFile).
     func asTrack(localPath: String? = nil, now: Date = Date()) -> Track {
         Track(
             title: name,
             artist: artist,
             album: albumName,
+            albumArtist: albumArtist,
+            trackNumber: trackNumber,
+            discNumber: discNumber,
+            duration: duration,
+            releaseDate: date,
+            sourceURL: url,
+            coverURL: coverURL,
             localPath: localPath,
             createdAt: now,
             updatedAt: now
