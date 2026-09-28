@@ -121,4 +121,42 @@ final class PlaybackQueueTests: XCTestCase {
         }
         XCTAssertEqual(seen.count, 10)
     }
+
+    @MainActor
+    func testRemoveOtherTrackKeepsPlaying() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A"), makeTrack(title: "B"), makeTrack(title: "C")], startingAt: 1)
+        svc.removeFromQueue(at: IndexSet(integer: 0))
+        XCTAssertEqual(svc.queue.map(\.title), ["B", "C"])
+        XCTAssertEqual(svc.currentTrack?.title, "B")
+        XCTAssertEqual(svc.currentIndex, 0)
+    }
+
+    @MainActor
+    func testRemovePlayingTrackAdvances() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A"), makeTrack(title: "B"), makeTrack(title: "C")], startingAt: 1)
+        svc.removeFromQueue(at: IndexSet(integer: 1))
+        XCTAssertEqual(svc.queue.map(\.title), ["A", "C"])
+        // Resumes at the track that slid into the removed position.
+        XCTAssertEqual(svc.currentTrack?.title, "C")
+    }
+
+    @MainActor
+    func testRemovePlayingTailPlaysNewTail() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A"), makeTrack(title: "B")], startingAt: 1)
+        svc.removeFromQueue(at: IndexSet(integer: 1))
+        XCTAssertEqual(svc.queue.map(\.title), ["A"])
+        XCTAssertEqual(svc.currentTrack?.title, "A")
+    }
+
+    @MainActor
+    func testRemoveAllStops() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        svc.removeFromQueue(at: IndexSet(integer: 0))
+        XCTAssertTrue(svc.queue.isEmpty)
+        XCTAssertNil(svc.currentTrack)
+    }
 }

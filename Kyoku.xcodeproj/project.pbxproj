@@ -28,7 +28,6 @@
 		A100000000000000000000009 /* SyncJob.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000009 /* SyncJob.swift */; };
 		A100000000000000000000010 /* DownloadProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000010 /* DownloadProfile.swift */; };
 		A100000000000000000000011 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000011 /* LibraryStore.swift */; };
-		A100000000000000000000012 /* PlayerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000012 /* PlayerService.swift */; };
 		A100000000000000000000013 /* DownloadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000013 /* DownloadEngine.swift */; };
 		A100000000000000000000014 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000014 /* ProcessRunner.swift */; };
 		A100000000000000000000015 /* SpotDLEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000015 /* SpotDLEngine.swift */; };
@@ -77,7 +76,6 @@
 		B100000000000000000000009 /* SyncJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncJob.swift; sourceTree = "<group>"; };
 		B100000000000000000000010 /* DownloadProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadProfile.swift; sourceTree = "<group>"; };
 		B100000000000000000000011 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
-		B100000000000000000000012 /* PlayerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerService.swift; sourceTree = "<group>"; };
 		B100000000000000000000013 /* DownloadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadEngine.swift; sourceTree = "<group>"; };
 		B100000000000000000000014 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		B100000000000000000000015 /* SpotDLEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDLEngine.swift; sourceTree = "<group>"; };
@@ -253,7 +251,6 @@
 		C000000000000000000000013 /* Player */ = {
 			isa = PBXGroup;
 			children = (
-				B100000000000000000000012 /* PlayerService.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -453,7 +450,6 @@
 				A100000000000000000000009 /* SyncJob.swift in Sources */,
 				A100000000000000000000010 /* DownloadProfile.swift in Sources */,
 				A100000000000000000000011 /* LibraryStore.swift in Sources */,
-				A100000000000000000000012 /* PlayerService.swift in Sources */,
 				A100000000000000000000013 /* DownloadEngine.swift in Sources */,
 				A100000000000000000000022 /* DownloadEngineError.swift in Sources */,
 				A100000000000000000000014 /* ProcessRunner.swift in Sources */,

@@ -1,18 +1,28 @@
 import AVFoundation
 import SwiftUI
 
-/// Artwork with graceful fallback: cached file → remote URL → placeholder.
-/// Image loading is lazy per-view; NSCache avoids re-decoding on scroll.
+/// Artwork with graceful fallback: cached file → embedded → remote → placeholder.
+///
+/// Loading discipline:
+/// - Local sources (cache file, embedded tags) resolve synchronously —
+///   cheap, no scroll hitch.
+/// - Remote covers load ASYNC on first sight (never `Data(contentsOf:)`
+///   on the main thread), then publish and memory-cache. Duplicate
+///   in-flight requests for the same URL coalesce.
+/// - Missing artwork fails gracefully to the placeholder; no disk cache
+///   yet (memory NSCache only, 500 images).
 struct ArtworkView: View {
     var artworkPath: String?
     var coverURL: String?
     var localPath: String?
     var size: CGFloat = 48
 
+    @State private var remoteImage: NSImage?
+
     var body: some View {
         Group {
-            if let image = ArtworkCache.shared.image(
-                artworkPath: artworkPath, coverURL: coverURL, localPath: localPath) {
+            if let image = ArtworkCache.shared.localImage(
+                artworkPath: artworkPath, localPath: localPath) ?? remoteImage {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -28,48 +38,72 @@ struct ArtworkView: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.15))
+        .task(id: coverURL) {
+            // Async remote fetch only when local sources missed.
+            guard ArtworkCache.shared.localImage(
+                artworkPath: artworkPath, localPath: localPath) == nil,
+                  let coverURL, !coverURL.isEmpty
+            else { return }
+            if let img = await ArtworkCache.shared.remoteImage(urlString: coverURL) {
+                remoteImage = img
+            }
+        }
     }
 }
 
-final class ArtworkCache {
+final class ArtworkCache: Sendable {
     static let shared = ArtworkCache()
     private let cache = NSCache<NSString, NSImage>()
+    /// In-flight remote fetches, coalesced by URL.
+    private let inflight = InflightBox()
     private let fm = FileManager.default
 
     private init() {
         cache.countLimit = 500
     }
 
-    /// Resolution order: cached file → embedded in audio → remote URL
-    /// (downloaded + cached on success) → nil (placeholder).
-    /// Synchronous by design: called during cell render for small images.
-    /// Remote fetch is bounded (2MB, 10s) and cached to artworkPath's
-    /// sibling dir when a track provides one; otherwise memory-only.
-    func image(artworkPath: String?, coverURL: String?, localPath: String?) -> NSImage? {
-        let key = [artworkPath, coverURL, localPath].compactMap { $0 }.joined(separator: "|")
-        guard !key.isEmpty else { return nil }
-        if let hit = cache.object(forKey: key as NSString) { return hit }
-
-        // 1. Managed cache file.
-        if let artworkPath, let img = NSImage(contentsOfFile: artworkPath) {
-            cache.setObject(img, forKey: key as NSString)
-            return img
+    /// Synchronous local resolution: cache file → embedded tags → memory
+    /// hit. Never touches the network. Nil = show placeholder / try remote.
+    func localImage(artworkPath: String?, localPath: String?) -> NSImage? {
+        if let artworkPath {
+            let key = "file:\(artworkPath)" as NSString
+            if let hit = cache.object(forKey: key) { return hit }
+            if let img = NSImage(contentsOfFile: artworkPath) {
+                cache.setObject(img, forKey: key)
+                return img
+            }
         }
-        // 2. Embedded artwork in the audio file.
-        if let localPath,
-           let img = embeddedArtwork(localPath: localPath) {
-            cache.setObject(img, forKey: key as NSString)
-            return img
-        }
-        // 3. Remote cover (memory cache only; disk caching is Phase 3+).
-        if let coverURL, let url = URL(string: coverURL),
-           let data = try? Data(contentsOf: url),
-           data.count < 2_000_000,
-           let img = NSImage(data: data) {
-            cache.setObject(img, forKey: key as NSString)
-            return img
+        if let localPath {
+            let key = "embedded:\(localPath)" as NSString
+            if let hit = cache.object(forKey: key) { return hit }
+            if let img = embeddedArtwork(localPath: localPath) {
+                cache.setObject(img, forKey: key)
+                return img
+            }
         }
         return nil
+    }
+
+    /// Async remote cover fetch with in-flight coalescing + memory cache.
+    /// Bounded at 2MB; failures return nil (caller keeps placeholder).
+    func remoteImage(urlString: String) async -> NSImage? {
+        let key = "remote:\(urlString)" as NSString
+        if let hit = cache.object(forKey: key) { return hit }
+        return await inflight.run(key: urlString) { [cache] in
+            // Recheck after acquiring the gate (another task may have won).
+            if let hit = cache.object(forKey: key) { return hit }
+            guard let url = URL(string: urlString) else { return nil }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard data.count < 2_000_000,
+                      let img = NSImage(data: data)
+                else { return nil }
+                cache.setObject(img, forKey: key)
+                return img
+            } catch {
+                return nil
+            }
+        }
     }
 
     private func embeddedArtwork(localPath: String) -> NSImage? {
@@ -84,5 +118,24 @@ final class ArtworkCache {
               let img = NSImage(data: data)
         else { return nil }
         return img
+    }
+}
+
+/// Coalesces concurrent fetches for the same key: the first task runs the
+/// operation, joiners await its result instead of refetching.
+private final class InflightBox: Sendable {
+    private var tasks: [String: Task<NSImage?, Never>] = [:]
+    private let lock = NSLock()
+
+    func run(key: String, operation: @escaping @Sendable () async -> NSImage?) async -> NSImage? {
+        let task: Task<NSImage?, Never> = lock.withLock {
+            if let existing = tasks[key] { return existing }
+            let created = Task { await operation() }
+            tasks[key] = created
+            return created
+        }
+        let result = await task.value
+        lock.withLock { tasks.removeValue(forKey: key) }
+        return result
     }
 }

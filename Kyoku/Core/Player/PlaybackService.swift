@@ -105,25 +105,46 @@ final class PlaybackService: ObservableObject {
     }
 
     func removeFromQueue(at offsets: IndexSet) {
-        let removed = offsets.map { queue[$0].id }
-        // Adjust current index before removal.
-        if let currentIndex {
-            let currentID = queue[currentIndex].id
-            if removed.contains(currentID) {
-                // Removing the playing track: advance first.
-                next(auto: true)
-            }
-        }
+        // Snapshot the playing track's identity first: every mutation
+        // below is expressed in terms of IDs, never stale indices.
+        let playingID = currentIndex.map { queue[$0].id }
+        let removedIDs = Set(offsets.map { queue[$0].id })
+        let playingRemoved = playingID.map { removedIDs.contains($0) } ?? false
+
+        // Remove high-to-low so earlier indices stay valid.
         for index in offsets.sorted(by: >) {
             queue.remove(at: index)
         }
-        if let currentIndex, let newIndex = queue.firstIndex(where: { $0.id == queue[currentIndex].id }) {
-            self.currentIndex = newIndex
-        } else if queue.isEmpty {
+        guard !queue.isEmpty else {
             stop()
             return
         }
-        rebuildShuffleOrder()
+        if playingRemoved {
+            // The playing track is gone: continue from the track that slid
+            // into the lowest removed position (or the new tail), and keep
+            // playing. Clamp: removing the tail means "next" is the new tail.
+            let resume = min(offsets.min() ?? 0, queue.count - 1)
+            currentIndex = resume
+            play(at: resume)
+        } else if let playingID,
+                  let newIndex = queue.firstIndex(where: { $0.id == playingID }) {
+            currentIndex = newIndex
+            if isShuffled {
+                shufflePosition = shuffleOrder.firstIndex(of: newIndex)
+            }
+        }
+        if isShuffled {
+            // Indices shifted: rebuild order around the surviving position.
+            // Preserve remaining shuffle order for unplayed tracks where
+            // possible is overkill; a clean rebuild anchored at current is
+            // predictable and test-covered.
+            if let currentIndex {
+                shuffleOrder = [currentIndex] + queue.indices.filter { $0 != currentIndex }.shuffled()
+                shufflePosition = 0
+            } else {
+                rebuildShuffleOrder()
+            }
+        }
     }
 
     func moveInQueue(from source: IndexSet, to destination: Int) {
