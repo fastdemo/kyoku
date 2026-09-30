@@ -16,7 +16,11 @@ final class AppContainer: ObservableObject {
     @Published var player: PlaybackService?
     let downloads: any DownloadEngine
     let queue: DownloadQueue
-    let syncScheduler: SyncScheduler
+    let sources: SourceStore
+    let syncJobs: SyncJobStore
+    let automation: AutomationRecordStore
+    let scheduler: SyncScheduler2
+    let syncEngine: SyncEngine
     let musicFolderAccess: MusicFolderAccess
     let logger = KyokuLogger(subsystem: "app")
 
@@ -31,12 +35,25 @@ final class AppContainer: ObservableObject {
         let library = LibraryStore(database: database)
         let runner = ProcessRunner()
         let downloads: any DownloadEngine = SpotDLEngine(runner: runner)
-        let syncScheduler = SyncScheduler()
         let musicFolderAccess = MusicFolderAccess(settings: settings)
         let queue = DownloadQueue(
             database: database,
             engine: downloads,
             library: library,
+            musicFolderAccess: musicFolderAccess
+        )
+        let sources = SourceStore(database: database)
+        let syncJobs = SyncJobStore(database: database)
+        let automation = AutomationRecordStore(database: database)
+        let scheduler = SyncScheduler2()
+        let syncEngine = SyncEngine(
+            database: database,
+            engine: downloads,
+            queue: queue,
+            library: library,
+            sources: sources,
+            jobs: syncJobs,
+            records: automation,
             musicFolderAccess: musicFolderAccess
         )
 
@@ -45,8 +62,44 @@ final class AppContainer: ObservableObject {
         self.library = library
         self.downloads = downloads
         self.queue = queue
-        self.syncScheduler = syncScheduler
+        self.sources = sources
+        self.syncJobs = syncJobs
+        self.automation = automation
+        self.scheduler = scheduler
+        self.syncEngine = syncEngine
         self.musicFolderAccess = musicFolderAccess
+    }
+
+    /// Finish main-actor wiring (player, queue worker, scheduler,
+    /// interrupted-run recovery). Called once from the main thread
+    /// (KyokuApp scene task). AppContainer.init stays nonisolated for
+    /// @StateObject.
+    @MainActor
+    func start() {
+        startPlayer()
+        queue.start()
+        sources.start()
+        syncJobs.start()
+        automation.start()
+        // Scheduler pulls due jobs from the store; the engine runs them.
+        scheduler.jobProvider = { [weak self] in self?.syncJobs.jobs ?? [] }
+        scheduler.onDueJobs = { [weak self] jobs in
+            guard let self else { return }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                for job in jobs {
+                    scheduler.markRunning(job.id)
+                    await syncEngine.run(jobID: job.id)
+                    scheduler.markFinished(job.id)
+                    syncJobs.refresh()
+                    sources.refresh()
+                    automation.refresh()
+                }
+            }
+        }
+        scheduler.start()
+        syncEngine.recoverInterruptedRuns()
+        SyncNotifier.requestAuthorization()
     }
 
     /// Finish main-actor wiring (player + history callback). Called once

@@ -103,4 +103,114 @@ enum Schema {
         "ALTER TABLE tracks ADD COLUMN album_id TEXT REFERENCES albums(id) ON DELETE SET NULL;",
         "ALTER TABLE tracks ADD COLUMN artist_id TEXT REFERENCES artists(id) ON DELETE SET NULL;",
     ]
+
+    /// Phase 3: automation tables + download/sync linkage. Additive only.
+    ///
+    /// Design notes:
+    /// - `sources` is the watched remote (URL + classification + display).
+    /// - `sync_jobs` is the user's policy for one source (destination,
+    ///   profile, schedule, removal, enabled). One source MAY feed many
+    ///   jobs later, but Phase 3 creates one job per source.
+    /// - `source_snapshots` stores the last resolved track list per source
+    ///   (JSON array of stable entries) so change detection survives restarts.
+    /// - `sync_runs` records each execution for Activity + recovery.
+    /// - `attention_items` is the Needs Attention inbox (persistent).
+    /// - `activity_events` is the human-readable Activity feed.
+    /// - `download_tasks` gains sync linkage columns (nullable; one-off
+    ///   Phase 1/2 downloads simply leave them NULL).
+    static let v4tables: [String] = [
+        """
+        CREATE TABLE IF NOT EXISTS sources (
+            id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL DEFAULT 'unknown',
+            url TEXT NOT NULL,
+            display_name TEXT NOT NULL DEFAULT '',
+            artwork_path TEXT,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            last_checked_at REAL,
+            last_success_at REAL,
+            last_error TEXT,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS sync_jobs (
+            id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL REFERENCES sources(id) ON DELETE CASCADE,
+            name TEXT NOT NULL DEFAULT '',
+            destination TEXT NOT NULL DEFAULT '',
+            profile_id TEXT NOT NULL DEFAULT 'apple-library',
+            schedule TEXT NOT NULL DEFAULT 'manual',
+            removal_policy TEXT NOT NULL DEFAULT 'ask',
+            enabled INTEGER NOT NULL DEFAULT 1,
+            last_run_at REAL,
+            last_success_at REAL,
+            last_error TEXT,
+            consecutive_failures INTEGER NOT NULL DEFAULT 0,
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS source_snapshots (
+            source_id TEXT PRIMARY KEY REFERENCES sources(id) ON DELETE CASCADE,
+            snapshot_json TEXT NOT NULL DEFAULT '[]',
+            track_count INTEGER NOT NULL DEFAULT 0,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS sync_runs (
+            id TEXT PRIMARY KEY,
+            sync_job_id TEXT NOT NULL REFERENCES sync_jobs(id) ON DELETE CASCADE,
+            started_at REAL NOT NULL,
+            finished_at REAL,
+            status TEXT NOT NULL DEFAULT 'running',
+            added_count INTEGER NOT NULL DEFAULT 0,
+            removed_count INTEGER NOT NULL DEFAULT 0,
+            changed_count INTEGER NOT NULL DEFAULT 0,
+            unchanged_count INTEGER NOT NULL DEFAULT 0,
+            queued_count INTEGER NOT NULL DEFAULT 0,
+            downloaded_count INTEGER NOT NULL DEFAULT 0,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            error TEXT
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS attention_items (
+            id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL,
+            title TEXT NOT NULL DEFAULT '',
+            detail TEXT NOT NULL DEFAULT '',
+            sync_job_id TEXT REFERENCES sync_jobs(id) ON DELETE CASCADE,
+            source_url TEXT,
+            track_url TEXT,
+            task_id TEXT REFERENCES download_tasks(id) ON DELETE SET NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            created_at REAL NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS activity_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sync_job_id TEXT REFERENCES sync_jobs(id) ON DELETE CASCADE,
+            kind TEXT NOT NULL,
+            title TEXT NOT NULL DEFAULT '',
+            detail TEXT NOT NULL DEFAULT '',
+            created_at REAL NOT NULL
+        );
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_activity_time ON activity_events(created_at);",
+        "CREATE INDEX IF NOT EXISTS idx_attention_status ON attention_items(status);",
+        "CREATE INDEX IF NOT EXISTS idx_sync_runs_job ON sync_runs(sync_job_id);",
+    ]
+
+    /// Phase 3: download_tasks linkage. Nullable; one-off downloads NULL.
+    static let v4columns: [String] = [
+        "ALTER TABLE download_tasks ADD COLUMN sync_job_id TEXT REFERENCES sync_jobs(id) ON DELETE SET NULL;",
+        "ALTER TABLE download_tasks ADD COLUMN sync_run_id TEXT REFERENCES sync_runs(id) ON DELETE SET NULL;",
+        "ALTER TABLE download_tasks ADD COLUMN source_id TEXT REFERENCES sources(id) ON DELETE SET NULL;",
+    ]
 }

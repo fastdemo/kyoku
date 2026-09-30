@@ -7,9 +7,10 @@ struct RootView: View {
     @State private var selection: NavItem? = .recentlyAdded
     @State private var searchText = ""
     @State private var showingNowPlaying = false
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selection) {
                 Section("Listen") {
                     Label("Recently Added", systemImage: "clock").tag(NavItem.recentlyAdded)
@@ -28,6 +29,9 @@ struct RootView: View {
                 }
                 Section("Automation") {
                     Label("Sources", systemImage: "antenna.radiowaves.left.and.right").tag(NavItem.sources)
+                    Label("Sync Jobs", systemImage: "arrow.triangle.2.circlepath").tag(NavItem.syncJobs)
+                    Label("Activity", systemImage: "list.bullet.rectangle").tag(NavItem.activity)
+                    Label("Needs Attention", systemImage: "exclamationmark.triangle").tag(NavItem.attention)
                 }
             }
             .navigationTitle("Kyoku")
@@ -72,6 +76,12 @@ struct RootView: View {
                 QueueView()
             case .sources:
                 SourcesView()
+            case .syncJobs:
+                SyncJobsView()
+            case .activity:
+                ActivityView()
+            case .attention:
+                NeedsAttentionView()
             }
         }
     }
@@ -86,4 +96,7 @@ enum NavItem: Hashable {
     case playlists
     case queue
     case sources
+    case syncJobs
+    case activity
+    case attention
 }

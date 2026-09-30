@@ -350,8 +350,12 @@ final class PlaybackService: ObservableObject {
     private func trackDidFinish(_ item: AVPlayerItem?) {
         // Only respond to our own item finishing.
         if let current = player?.currentItem, let item, current !== item { return }
-        // Count short tracks that ended before the periodic observer fired.
-        recordPlayIfEligible()
+        // A finished track was necessarily listened through: count it
+        // unconditionally (the threshold only gates mid-playback ticks).
+        if let track = currentTrack, countedPlayForTrackID != track.id {
+            countedPlayForTrackID = track.id
+            onRecordPlay?(track.id)
+        }
         next(auto: true)
     }
 
@@ -388,6 +392,20 @@ final class PlaybackService: ObservableObject {
             self.timeObserver = nil
         }
     }
+
+#if DEBUG
+    // MARK: - Test hooks
+
+    /// Simulate the periodic time observer firing (threshold path).
+    func simulateTimeForTests(seconds: Double) {
+        tick(time: CMTime(seconds: seconds, preferredTimescale: 600))
+    }
+
+    /// Simulate the end-of-track notification (finish path).
+    func simulateFinishForTests() {
+        trackDidFinish(player?.currentItem)
+    }
+#endif
 }
 
 enum PlaybackState: Equatable, Sendable {

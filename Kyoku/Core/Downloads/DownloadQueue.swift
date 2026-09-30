@@ -52,7 +52,11 @@ final class DownloadQueue: ObservableObject {
 
     /// Enqueue resolved songs for download. Skips songs already queued
     /// (by Spotify URL) so re-resolving a source is idempotent.
-    func enqueue(_ songs: [ResolvedSong], sourceURL: String) {
+    /// Sync callers pass job/run/source IDs for linkage (one-off UI
+    /// downloads leave them nil).
+    func enqueue(_ songs: [ResolvedSong], sourceURL: String,
+                 syncJobID: String? = nil, syncRunID: String? = nil,
+                 sourceID: String? = nil) {
         let existing = Set(tasks.map(\.sourceURL))
         var added = 0
         for song in songs where !existing.contains(song.url) {
@@ -63,7 +67,10 @@ final class DownloadQueue: ObservableObject {
                 state: .pending,
                 createdAt: now,
                 updatedAt: now,
-                resolvedSong: song
+                resolvedSong: song,
+                syncJobID: syncJobID,
+                syncRunID: syncRunID,
+                sourceID: sourceID
             )
             persist(task)
             tasks.append(task)
@@ -231,12 +238,14 @@ final class DownloadQueue: ObservableObject {
         do {
             try database.execute(
                 """
-                INSERT INTO download_tasks (id, source_url, state, created_at, updated_at, resolved_json, last_error, output_path)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO download_tasks (id, source_url, state, created_at, updated_at, resolved_json, last_error, output_path, sync_job_id, sync_run_id, source_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     source_url=excluded.source_url, state=excluded.state,
                     updated_at=excluded.updated_at, resolved_json=excluded.resolved_json,
-                    last_error=excluded.last_error, output_path=excluded.output_path;
+                    last_error=excluded.last_error, output_path=excluded.output_path,
+                    sync_job_id=excluded.sync_job_id, sync_run_id=excluded.sync_run_id,
+                    source_id=excluded.source_id;
                 """,
                 [
                     .text(task.id), .text(task.sourceURL), .text(task.state.rawValue),
@@ -244,6 +253,9 @@ final class DownloadQueue: ObservableObject {
                     resolvedJSON.map(SQLiteValue.text) ?? .null,
                     task.lastError.map(SQLiteValue.text) ?? .null,
                     task.outputPath.map(SQLiteValue.text) ?? .null,
+                    task.syncJobID.map(SQLiteValue.text) ?? .null,
+                    task.syncRunID.map(SQLiteValue.text) ?? .null,
+                    task.sourceID.map(SQLiteValue.text) ?? .null,
                 ]
             )
         } catch {
@@ -254,7 +266,7 @@ final class DownloadQueue: ObservableObject {
     private func load() {
         do {
             let rows = try database.query(
-                "SELECT id, source_url, state, created_at, updated_at, resolved_json, last_error, output_path FROM download_tasks ORDER BY created_at;"
+                "SELECT id, source_url, state, created_at, updated_at, resolved_json, last_error, output_path, sync_job_id, sync_run_id, source_id FROM download_tasks ORDER BY created_at;"
             )
             let decoder = JSONDecoder()
             tasks = rows.compactMap { row in
@@ -276,7 +288,10 @@ final class DownloadQueue: ObservableObject {
                     updatedAt: row["updated_at"]?.real.map(Date.init(timeIntervalSince1970:)) ?? Date(),
                     resolvedSong: song,
                     lastError: row["last_error"]?.text,
-                    outputPath: row["output_path"]?.text
+                    outputPath: row["output_path"]?.text,
+                    syncJobID: row["sync_job_id"]?.text,
+                    syncRunID: row["sync_run_id"]?.text,
+                    sourceID: row["source_id"]?.text
                 )
             }
         } catch {

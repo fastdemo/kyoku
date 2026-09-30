@@ -8,7 +8,7 @@ final class Database {
     private let path: String
     private let db: OpaquePointer
 
-    static let schemaVersion = 3
+    static let schemaVersion = 4
 
     init(path: String? = nil) throws {
         let fm = FileManager.default
@@ -74,6 +74,17 @@ final class Database {
         if current < 3 {
             for stmt in Schema.v3tables { try run(stmt, []) }
             for stmt in Schema.v3columns {
+                do {
+                    try run(stmt, [])
+                } catch DatabaseError.stepFailed(let message)
+                    where message.contains("duplicate column name") {
+                    continue
+                }
+            }
+        }
+        if current < 4 {
+            for stmt in Schema.v4tables { try run(stmt, []) }
+            for stmt in Schema.v4columns {
                 do {
                     try run(stmt, [])
                 } catch DatabaseError.stepFailed(let message)

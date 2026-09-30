@@ -29,6 +29,10 @@ struct DownloadTask: Identifiable, Sendable {
     var lastError: String?
     /// Local file produced by a completed download.
     var outputPath: String?
+    /// Originating sync job/run/source (nil for one-off Phase 1/2 downloads).
+    var syncJobID: String?
+    var syncRunID: String?
+    var sourceID: String?
 }
 
 /// Internal API the whole app programs against. First impl: SpotDLEngine.

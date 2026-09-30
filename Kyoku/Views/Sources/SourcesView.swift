@@ -1,124 +1,181 @@
 import SwiftUI
 
-/// Phase 1 sources: paste a URL or search term → resolve → preview tracks
-/// → enqueue. No spotDL vocabulary; just "paste a link, get music".
+/// Persistent Sources: list + add (resolve → Download Once / Create Sync
+/// Job) + enable/disable + delete + Sync Now shortcut. Consolidates the
+/// old Phase 1 one-off Sources screen: the add flow is preserved, and
+/// resolved sources can now persist.
 struct SourcesView: View {
     @EnvironmentObject private var container: AppContainer
-    @State private var input = ""
-    @State private var isResolving = false
-    @State private var discovered: [DiscoveredTrack] = []
-    @State private var errorMessage: String?
-    @State private var resolveTask: Task<Void, Never>?
+    @State private var showingAdd = false
+    @State private var runningJobID: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Add Music")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-
-            HStack(spacing: 8) {
-                TextField("Spotify or YouTube link, or search for a song…", text: $input)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit { resolve() }
-                    .disabled(isResolving)
-                if isResolving {
-                    Button("Cancel") { resolveTask?.cancel() }
-                } else {
-                    Button("Add") { resolve() }
-                        .keyboardShortcut(.defaultAction)
-                        .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty)
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            Divider()
+            if container.sources.sources.isEmpty {
+                emptyState
+            } else {
+                List(container.sources.sources) { source in
+                    SourceRow(source: source, runningJobID: runningJobID)
                 }
+                .listStyle(.inset)
             }
-
-            if isResolving {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("Finding tracks… this can take a few minutes on first run.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-            }
-
-            if !discovered.isEmpty {
-                resultsSection
-            }
-
-            Spacer()
         }
-        .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .navigationTitle("Sources")
+        .sheet(isPresented: $showingAdd) {
+            AddSourceView()
+                .environmentObject(container)
+                .frame(minWidth: 520, minHeight: 480)
+        }
     }
 
-    private var resultsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("\(discovered.count) track\(discovered.count == 1 ? "" : "s") found")
-                    .font(.headline)
-                Spacer()
-                Button("Download All") {
-                    container.queue.enqueue(discovered.map(\.song), sourceURL: input)
-                    discovered = []
-                    input = ""
-                }
+    private var header: some View {
+        HStack {
+            Text("Sources")
+                .font(.largeTitle).fontWeight(.bold)
+            Spacer()
+            Button("Add Source") { showingAdd = true }
                 .buttonStyle(.borderedProminent)
-            }
-            List {
-                ForEach(discovered) { track in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("\(track.artist) – \(track.title)")
-                                .lineLimit(1)
-                            Text(track.song.albumName)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                        Spacer()
-                        Text(formatDuration(track.song.duration))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
+        }
+        .padding(20)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "antenna.radiowaves.left.and.right")
+                .font(.largeTitle).foregroundStyle(.secondary)
+            Text("No Sources")
+                .font(.headline)
+            Text("Add a Spotify or YouTube playlist to start building your library automatically.")
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Add Source") { showingAdd = true }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 4)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct SourceRow: View {
+    @EnvironmentObject private var container: AppContainer
+    var source: Source
+    var runningJobID: String?
+    @State private var confirmDelete = false
+
+    var body: some View {
+        let jobs = container.syncJobs.jobs.filter { $0.sourceID == source.id }
+        let snapshotCount = snapshotTrackCount
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundStyle(.secondary)
+                .frame(width: 36)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(source.displayName.isEmpty ? source.url : source.displayName)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(subtitle(trackCount: snapshotCount))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                if let error = source.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .lineLimit(2)
                 }
             }
-            .listStyle(.inset)
-            .frame(minHeight: 200)
+            Spacer()
+            if !source.enabled {
+                Text("Paused")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if jobs.contains(where: { $0.id == runningJobID }) {
+                ProgressView().controlSize(.small)
+            }
+        }
+        .padding(.vertical, 4)
+        .contextMenu {
+            Button(source.enabled ? "Pause" : "Resume") {
+                container.sources.setEnabled(id: source.id, enabled: !source.enabled)
+            }
+            if let job = jobs.first {
+                Button("Sync Now") {
+                    SyncNowRunner.run(jobID: job.id, container: container)
+                }
+                .disabled(!source.enabled)
+            }
+            Divider()
+            Button("Delete Source", role: .destructive) {
+                confirmDelete = true
+            }
+        }
+        .confirmationDialog("Delete this source?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete Source", role: .destructive) {
+                container.sources.remove(id: source.id)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            // Deleting a source removes its sync jobs and snapshots.
+            // Downloaded tracks stay in the library.
+            Text("Sync jobs for this source are removed too. Downloaded tracks stay in your library.")
         }
     }
 
-    private func resolve() {
-        let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return }
-        errorMessage = nil
-        discovered = []
-        isResolving = true
-        resolveTask = Task {
-            do {
-                let engine = container.downloads
-                let tracks = try await engine.resolveSource(query)
-                if !Task.isCancelled {
-                    discovered = tracks
-                    if tracks.isEmpty {
-                        errorMessage = "No tracks found. Check the link and try again."
-                    }
-                }
-            } catch is CancellationError {
-                // User cancelled; stay quiet.
-                errorMessage = nil
-            } catch {
-                errorMessage = (error as? LocalizedError)?.errorDescription
-                    ?? error.localizedDescription
-            }
-            isResolving = false
+    private var icon: String {
+        switch source.kind {
+        case "spotifyPlaylist", "spotifyAlbum", "spotifyArtist", "spotifyTrack": return "music.note.list"
+        case "youTubePlaylist", "youTubeVideo", "youTubeMusicLink": return "play.rectangle"
+        default: return "magnifyingglass"
         }
     }
 
-    private func formatDuration(_ seconds: Int) -> String {
-        String(format: "%d:%02d", seconds / 60, seconds % 60)
+    private var snapshotTrackCount: Int? {
+        // Cheap: read from the snapshot row without decoding JSON.
+        // SourceStore exposes full entries; count suffices here.
+        let entries = container.sources.loadSnapshot(sourceID: source.id)
+        return entries.isEmpty ? nil : entries.count
+    }
+
+    private func subtitle(trackCount: Int?) -> String {
+        var parts: [String] = [kindLabel]
+        if let trackCount { parts.append("\(trackCount) track\(trackCount == 1 ? "" : "s")") }
+        if let checked = source.lastCheckedAt {
+            parts.append("Checked \(checked.formatted(.relative(presentation: .named)))")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private var kindLabel: String {
+        switch source.kind {
+        case "spotifyPlaylist": return "Spotify Playlist"
+        case "spotifyAlbum": return "Spotify Album"
+        case "spotifyArtist": return "Spotify Artist"
+        case "spotifyTrack": return "Spotify Track"
+        case "youTubePlaylist": return "YouTube Playlist"
+        case "youTubeVideo": return "YouTube Video"
+        case "youTubeMusicLink": return "YouTube Music"
+        case "spotdlFile": return "spotDL File"
+        case "searchTerm": return "Search"
+        default: return "Source"
+        }
+    }
+}
+
+/// Runs a Sync Now from any view without duplicating task wiring.
+enum SyncNowRunner {
+    static func run(jobID: String, container: AppContainer) {
+        Task { @MainActor in
+            container.scheduler.markRunning(jobID)
+            await container.syncEngine.run(jobID: jobID)
+            container.scheduler.markFinished(jobID)
+            container.syncJobs.refresh()
+            container.sources.refresh()
+            container.automation.refresh()
+        }
     }
 }

@@ -159,4 +159,38 @@ final class PlaybackQueueTests: XCTestCase {
         XCTAssertTrue(svc.queue.isEmpty)
         XCTAssertNil(svc.currentTrack)
     }
+
+    // MARK: - Play counting (regression: finished tracks must count)
+
+    @MainActor
+    func testFinishedTrackCountsAsPlay() {
+        // Directly exercise the finish path: threshold NOT reached
+        // (currentTime 0), yet finishing must still record the play.
+        let svc = PlaybackService()
+        var recorded: [String] = []
+        svc.onRecordPlay = { recorded.append($0) }
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        XCTAssertTrue(recorded.isEmpty, "no play counted at start")
+        svc.simulateFinishForTests()
+        XCTAssertEqual(recorded, [svc.queue[0].id])
+        // Second finish (e.g. repeat-one loop calls play(at:) which
+        // re-arms; a bare duplicate finish must not double-count).
+        svc.simulateFinishForTests()
+        XCTAssertEqual(recorded.count, 1)
+    }
+
+    @MainActor
+    func testThresholdCountsMidPlayback() {
+        let svc = PlaybackService()
+        var recorded: [String] = []
+        svc.onRecordPlay = { recorded.append($0) }
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        // Simulate the periodic observer crossing the threshold:
+        // duration is the real fixture length (~0.5s), so any positive
+        // time past 50% counts.
+        svc.simulateTimeForTests(seconds: 1000)
+        XCTAssertEqual(recorded.count, 1)
+        svc.simulateTimeForTests(seconds: 2000)
+        XCTAssertEqual(recorded.count, 1, "must fire once per track load")
+    }
 }
