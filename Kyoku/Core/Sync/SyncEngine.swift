@@ -168,7 +168,7 @@ final class SyncEngine: ObservableObject {
         run.queuedCount = fresh.count
         if !fresh.isEmpty {
             setPhase(jobID: jobID, phase: "Queueing \(fresh.count) download(s)…", total: discovered.count)
-            queue.enqueue(fresh, sourceURL: source.url, syncJobID: job.id, syncRunID: run.id, sourceID: source.id)
+            queue.enqueue(fresh, sourceURL: source.url, syncJobID: job.id, syncRunID: run.id, sourceID: source.id, profileID: job.profileID)
         }
 
         // 5. Observe until our tasks settle (or timeout → partial).

@@ -23,6 +23,7 @@
 		A100000000000000000000004 /* KyokuLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000004 /* KyokuLogger.swift */; };
 		A100000000000000000000005 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000005 /* AppSettings.swift */; };
 		A100000000000000000000006 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000006 /* Database.swift */; };
+		D2000000000000000000000A1 /* DatabaseBoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1000000000000000000000A1 /* DatabaseBoot.swift */; };
 		A100000000000000000000007 /* Schema.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000007 /* Schema.swift */; };
 		A100000000000000000000008 /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000008 /* Track.swift */; };
 		A100000000000000000000010 /* DownloadProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000000000000000000010 /* DownloadProfile.swift */; };
@@ -49,6 +50,7 @@
 		C2004DFDD5858CD9910C427D /* LibraryImportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */; };
 		AB38CEF06133DECDF84090DA /* PlaybackQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */; };
 		70CE69FB1088117612DBEA08 /* MigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FBEF998FD19F32872A5A1C /* MigrationTests.swift */; };
+		D2000000000000000000000C3 /* DatabaseSurvivalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1000000000000000000000C3 /* DatabaseSurvivalTests.swift */; };
 		9EF16B672B0F635440C0562C /* AutomationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B426ABAF5977AA728ECB59F5 /* AutomationModels.swift */; };
 		045EBBA6B7E90B63C39650FA /* SourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031618159B69D11DE125948B /* SourceStore.swift */; };
 		B5692942509F6ABF20CCFAAA /* SyncJobStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9271A4CB243763431772FAA2 /* SyncJobStore.swift */; };
@@ -65,6 +67,15 @@
 		21A354789ACC5B4CE365A2FC /* SyncPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11ACEBF560088FF57AF4D1E6 /* SyncPreviewView.swift */; };
 		2F89595E5B8F0574F8BEA296 /* NeedsAttentionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1018CF479E193A6925209A28 /* NeedsAttentionView.swift */; };
 		009826AB796288F5BB55370C /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B25BE1CD591AAB87A5ED40 /* ActivityView.swift */; };
+		757296A9E01F2DD8396CA311 /* FolderPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BF25FFC1C734559333D08F /* FolderPicker.swift */; };
+		D2000000000000000000000B2 /* DatabaseRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1000000000000000000000B2 /* DatabaseRecoveryView.swift */; };
+		A91F0DC27EF5B580DC4F17F7 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6B5797FD7D94DFBB6FB0D2 /* OnboardingView.swift */; };
+		030CA29140138718545B4C29 /* PlaybackError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF7136D811C3EB187611AB2C /* PlaybackError.swift */; };
+		21D3E23EB33416EA3681B3AE /* DownloadQueueCorrectnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 250EA5566CEE8AB3729B024F /* DownloadQueueCorrectnessTests.swift */; };
+		53C9A3C149FA0ED452AA90B7 /* OnboardingSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37CAB767C694A750EBB51FC5 /* OnboardingSettingsTests.swift */; };
+		8241605D4C0DDDA4396D8F5D /* SandboxHardeningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F41BE97152D021066C908CD /* SandboxHardeningTests.swift */; };
+		B21F81FAB557B9C228C50029 /* ArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422265F22C4A23593C8C4644 /* ArtworkStore.swift */; };
+		5A5D8EB42E4E67BC2DBC6A06 /* LibraryRobustnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3D03538D205883B6592EFB /* LibraryRobustnessTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +97,7 @@
 		B100000000000000000000005 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		B100000000000000000000006 /* Database.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 		B100000000000000000000007 /* Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schema.swift; sourceTree = "<group>"; };
+		D1000000000000000000000A1 /* DatabaseBoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseBoot.swift; sourceTree = "<group>"; };
 		B100000000000000000000008 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
 		B100000000000000000000010 /* DownloadProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadProfile.swift; sourceTree = "<group>"; };
 		B100000000000000000000011 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
@@ -111,6 +123,7 @@
 		48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryImportTests.swift; path = KyokuTests/LibraryImportTests.swift; sourceTree = SOURCE_ROOT; };
 		984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackQueueTests.swift; path = KyokuTests/PlaybackQueueTests.swift; sourceTree = SOURCE_ROOT; };
 		35FBEF998FD19F32872A5A1C /* MigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MigrationTests.swift; path = KyokuTests/MigrationTests.swift; sourceTree = SOURCE_ROOT; };
+		D1000000000000000000000C3 /* DatabaseSurvivalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DatabaseSurvivalTests.swift; path = KyokuTests/DatabaseSurvivalTests.swift; sourceTree = SOURCE_ROOT; };
 		53C14A9F6CF71DA48C9DEF8A /* KyokuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KyokuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B426ABAF5977AA728ECB59F5 /* AutomationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationModels.swift; sourceTree = "<group>"; };
 		031618159B69D11DE125948B /* SourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceStore.swift; sourceTree = "<group>"; };
@@ -128,6 +141,15 @@
 		11ACEBF560088FF57AF4D1E6 /* SyncPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncPreviewView.swift; sourceTree = "<group>"; };
 		1018CF479E193A6925209A28 /* NeedsAttentionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeedsAttentionView.swift; sourceTree = "<group>"; };
 		E7B25BE1CD591AAB87A5ED40 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+		73BF25FFC1C734559333D08F /* FolderPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FolderPicker.swift; path = Kyoku/Views/Settings/FolderPicker.swift; sourceTree = SOURCE_ROOT; };
+		D1000000000000000000000B2 /* DatabaseRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DatabaseRecoveryView.swift; path = Kyoku/Views/Settings/DatabaseRecoveryView.swift; sourceTree = SOURCE_ROOT; };
+		5F6B5797FD7D94DFBB6FB0D2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingView.swift; path = Kyoku/Views/Settings/OnboardingView.swift; sourceTree = SOURCE_ROOT; };
+		CF7136D811C3EB187611AB2C /* PlaybackError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaybackError.swift; path = Kyoku/Core/Player/PlaybackError.swift; sourceTree = SOURCE_ROOT; };
+		250EA5566CEE8AB3729B024F /* DownloadQueueCorrectnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DownloadQueueCorrectnessTests.swift; path = KyokuTests/DownloadQueueCorrectnessTests.swift; sourceTree = SOURCE_ROOT; };
+		37CAB767C694A750EBB51FC5 /* OnboardingSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingSettingsTests.swift; path = KyokuTests/OnboardingSettingsTests.swift; sourceTree = SOURCE_ROOT; };
+		3F41BE97152D021066C908CD /* SandboxHardeningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SandboxHardeningTests.swift; path = KyokuTests/SandboxHardeningTests.swift; sourceTree = SOURCE_ROOT; };
+		422265F22C4A23593C8C4644 /* ArtworkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkStore.swift; path = Kyoku/Core/Library/ArtworkStore.swift; sourceTree = SOURCE_ROOT; };
+		7B3D03538D205883B6592EFB /* LibraryRobustnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryRobustnessTests.swift; path = KyokuTests/LibraryRobustnessTests.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,6 +262,7 @@
 			children = (
 				B100000000000000000000006 /* Database.swift */,
 				B100000000000000000000007 /* Schema.swift */,
+				D1000000000000000000000A1 /* DatabaseBoot.swift */,
 			);
 			path = Database;
 			sourceTree = "<group>";
@@ -260,6 +283,7 @@
 			children = (
 				B100000000000000000000011 /* LibraryStore.swift */,
 				54B64F75AF9D28C6199D7533 /* FileMetadataReader.swift */,
+				422265F22C4A23593C8C4644 /* ArtworkStore.swift */,
 				3B7A4901BDE8B9F5412508E2 /* LibraryIdentity.swift */,
 			);
 			path = Library;
@@ -269,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				E4BE466DB625E1B1F7B502E6 /* PlaybackService.swift */,
+				CF7136D811C3EB187611AB2C /* PlaybackError.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -318,6 +343,9 @@
 			isa = PBXGroup;
 			children = (
 				B100000000000000000000019 /* SettingsView.swift */,
+				5F6B5797FD7D94DFBB6FB0D2 /* OnboardingView.swift */,
+				73BF25FFC1C734559333D08F /* FolderPicker.swift */,
+				D1000000000000000000000B2 /* DatabaseRecoveryView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -345,9 +373,14 @@
 				48B1C8DDEDFF7F2CD216C643 /* LibraryImportTests.swift */,
 				984ABEAACBDF62E0FCABA811 /* PlaybackQueueTests.swift */,
 				35FBEF998FD19F32872A5A1C /* MigrationTests.swift */,
+				D1000000000000000000000C3 /* DatabaseSurvivalTests.swift */,
+				7B3D03538D205883B6592EFB /* LibraryRobustnessTests.swift */,
 				CF7D4B2986D35D30ACB12A7E /* AutomationPersistenceTests.swift */,
 				DF40C271A7B09CA46B99F699 /* SchedulerTests.swift */,
 				161AFB7007F45F0A8DD1D576 /* ChangeDetectionTests.swift */,
+				3F41BE97152D021066C908CD /* SandboxHardeningTests.swift */,
+				37CAB767C694A750EBB51FC5 /* OnboardingSettingsTests.swift */,
+				250EA5566CEE8AB3729B024F /* DownloadQueueCorrectnessTests.swift */,
 			);
 			path = KyokuTests;
 			sourceTree = "<group>";
@@ -502,6 +535,7 @@
 				A100000000000000000000004 /* KyokuLogger.swift in Sources */,
 				A100000000000000000000005 /* AppSettings.swift in Sources */,
 				A100000000000000000000006 /* Database.swift in Sources */,
+				D2000000000000000000000A1 /* DatabaseBoot.swift in Sources */,
 				A100000000000000000000007 /* Schema.swift in Sources */,
 				A100000000000000000000008 /* Track.swift in Sources */,
 				A100000000000000000000010 /* DownloadProfile.swift in Sources */,
@@ -513,6 +547,9 @@
 				A100000000000000000000016 /* MusicFolderAccess.swift in Sources */,
 				A100000000000000000000018 /* HomeView.swift in Sources */,
 				A100000000000000000000019 /* SettingsView.swift in Sources */,
+				A91F0DC27EF5B580DC4F17F7 /* OnboardingView.swift in Sources */,
+				757296A9E01F2DD8396CA311 /* FolderPicker.swift in Sources */,
+				D2000000000000000000000B2 /* DatabaseRecoveryView.swift in Sources */,
 				A100000000000000000000023 /* DownloadQueue.swift in Sources */,
 				A100000000000000000000024 /* QueueView.swift in Sources */,
 				A100000000000000000000025 /* SourcesView.swift in Sources */,
@@ -532,7 +569,9 @@
 				9EF16B672B0F635440C0562C /* AutomationModels.swift in Sources */,
 				B41141C7A3DE62F25AB5900A /* LibraryIdentity.swift in Sources */,
 				CA704903A7FDCB401749CFB3 /* FileMetadataReader.swift in Sources */,
+				B21F81FAB557B9C228C50029 /* ArtworkStore.swift in Sources */,
 				7A314A99AB3DD7D599598AB7 /* PlaybackService.swift in Sources */,
+				030CA29140138718545B4C29 /* PlaybackError.swift in Sources */,
 				85524BFB9D5788B2169A34B7 /* ArtworkView.swift in Sources */,
 				817A4F9ABB129E453809AA3E /* TrackContextMenu.swift in Sources */,
 				A8574C31AD5F4ADAABE397CF /* TrackRow.swift in Sources */,
@@ -556,9 +595,14 @@
 				C2004DFDD5858CD9910C427D /* LibraryImportTests.swift in Sources */,
 				AB38CEF06133DECDF84090DA /* PlaybackQueueTests.swift in Sources */,
 				70CE69FB1088117612DBEA08 /* MigrationTests.swift in Sources */,
+				D2000000000000000000000C3 /* DatabaseSurvivalTests.swift in Sources */,
+				5A5D8EB42E4E67BC2DBC6A06 /* LibraryRobustnessTests.swift in Sources */,
 				085D4E2F2C4CE4DFB2C277D5 /* AutomationPersistenceTests.swift in Sources */,
 				50A4015E292623BB29297741 /* SchedulerTests.swift in Sources */,
 				2719CA4369E8E5065C087023 /* ChangeDetectionTests.swift in Sources */,
+				8241605D4C0DDDA4396D8F5D /* SandboxHardeningTests.swift in Sources */,
+				53C9A3C149FA0ED452AA90B7 /* OnboardingSettingsTests.swift in Sources */,
+				21D3E23EB33416EA3681B3AE /* DownloadQueueCorrectnessTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

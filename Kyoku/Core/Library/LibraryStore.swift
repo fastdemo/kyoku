@@ -40,6 +40,20 @@ final class LibraryStore: ObservableObject {
 
     func refresh() {
         tracks = loadTracks(sql: "SELECT \(Self.trackColumns) FROM tracks ORDER BY created_at DESC LIMIT \(listLimit);")
+        // Availability is filesystem truth, recomputed by reconcile() and
+        // maintained by importFile/removeFromLibrary. New rows default to
+        // available (Track.isAvailable initial value). Preserve flags for
+        // still-missing IDs so a plain refresh doesn't resurrect them.
+        let knownMissing = missingTrackIDs
+        for i in tracks.indices where knownMissing.contains(tracks[i].id) {
+            // Only keep the flag when the file is STILL missing (import may
+            // have revived the row and already cleared the flag — see
+            // importFile revive path; this guard makes refresh idempotent).
+            if let path = tracks[i].localPath,
+               !FileManager.default.fileExists(atPath: path) {
+                tracks[i].isAvailable = false
+            }
+        }
         albums = loadAlbums()
         artists = loadArtists()
         playlists = loadPlaylists()
@@ -58,7 +72,7 @@ final class LibraryStore: ObservableObject {
         guard let id = row["id"]?.text,
               let title = row["title"]?.text
         else { return nil }
-        var track = Track(
+        let track = Track(
             id: id,
             title: title,
             artist: row["artist"]?.text ?? "",
@@ -126,25 +140,44 @@ final class LibraryStore: ObservableObject {
     /// row (path + metadata updated) instead of creating a second row.
     func importFile(at url: URL, song: ResolvedSong?) {
         let now = Date()
-        let fileTags = FileMetadataReader.read(url: url)
+        // NOTE: FileMetadataReader uses AVURLAsset (main-thread-hostile in
+        // some sandbox/test contexts). Callers on the worker path are
+        // already off the render path; keep duration cheap: prefer provider
+        // metadata, probe the file only when the provider reports nothing.
         let duration: Int
         if let song, song.duration > 0 {
             duration = song.duration
-        } else if fileTags.duration > 0 {
-            duration = fileTags.duration
         } else {
-            duration = song?.duration ?? 0
+            duration = FileMetadataReader.read(url: url).duration
         }
 
         // Duplicate detection: same Spotify source URL → same track.
+        // A missing row with the same source URL is REVIVED (not
+        // duplicated): the file came back, so restore availability +
+        // path on the existing row. Only available rows skip re-import.
         if let sourceURL = song?.url,
            let existing = tracks.first(where: { $0.sourceURL == sourceURL }) {
+            // Fresh import of an already-available track: nothing to do
+            // (metadata refresh is a later phase; keep it idempotent).
+            if existing.isAvailable, existing.localPath == url.path {
+                return
+            }
             var updated = existing
             updated.localPath = url.path
+            updated.isAvailable = true
+            // A restored file may carry new embedded art (re-encode,
+            // re-download). Refresh the managed cache when missing.
+            if updated.artworkPath == nil,
+               let cached = ArtworkStore.extract(audioURL: url, key: existing.id) {
+                updated.artworkPath = cached
+            }
             updated.updatedAt = now
             if updated.duration <= 0 { updated.duration = duration }
             persistTrack(updated, insertIfMissing: true)
             ensureAlbumArtistRows(for: updated)
+            // Revived: drop the stale missing flag so refresh() (below)
+            // and views read available. reconcile() re-derives from disk.
+            missingTrackIDs.remove(existing.id)
             refresh()
             return
         }
@@ -154,6 +187,13 @@ final class LibraryStore: ObservableObject {
             localPath: url.path, createdAt: now, updatedAt: now
         )
         track.duration = duration
+        // Managed artwork: extract embedded art once at import (background
+        // worker context), so cells never parse media to render. Provider
+        // metadata stays authoritative for text; artwork is additive only.
+        if let cached = ArtworkStore.extract(audioURL: url, key: track.id) {
+            track.artworkPath = cached
+        }
+        track.isAvailable = true
         persistTrack(track, insertIfMissing: true)
         ensureAlbumArtistRows(for: track)
         refresh()
@@ -242,6 +282,15 @@ final class LibraryStore: ObservableObject {
                 )
                 try database.execute("UPDATE tracks SET album_id=? WHERE id=?;",
                                      [.text(albumID), .text(track.id)])
+                // Album artwork backfill: first track with managed art wins.
+                // Reuses the track's extracted file (no re-extraction, no
+                // per-cell parsing). Later tracks never overwrite.
+                if let art = track.artworkPath {
+                    try database.execute(
+                        "UPDATE albums SET artwork_path=? WHERE id=? AND (artwork_path IS NULL OR artwork_path='');",
+                        [.text(art), .text(albumID)]
+                    )
+                }
             } catch {
                 logger.error("Album link failed: \(error.localizedDescription)")
             }
@@ -263,14 +312,18 @@ final class LibraryStore: ObservableObject {
     /// Check every track's file on disk. Returns missing IDs and publishes
     /// them; rows are NOT deleted (user decides: relink or remove).
     /// Safe on missing drives: everything simply reports missing.
+    /// Also hydrates per-track `isAvailable` so views render missing state
+    /// without their own filesystem checks.
     @discardableResult
     func reconcile() -> [String] {
         let fm = FileManager.default
         var missing: [String] = []
-        for track in tracks {
-            guard let path = track.localPath else { continue }
-            if !fm.fileExists(atPath: path) {
-                missing.append(track.id)
+        for i in tracks.indices {
+            guard let path = tracks[i].localPath else { continue }
+            let available = fm.fileExists(atPath: path)
+            tracks[i].isAvailable = available
+            if !available {
+                missing.append(tracks[i].id)
             }
         }
         missingTrackIDs = Set(missing)
@@ -368,11 +421,13 @@ final class LibraryStore: ObservableObject {
     }
 
     /// Local LIKE search across tracks/albums/artists/playlists.
-    /// Escapes %/_ so user text can't become a wildcard.
+    /// Escapes %, _, and \ so user text is always literal (backslash is
+    /// the ESCAPE character and must itself be escaped first).
     func search(_ raw: String, limitPerSection: Int = 25) -> SearchResults {
         let q = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !q.isEmpty else { return SearchResults() }
-        let like = "%" + q.replacingOccurrences(of: "%", with: "\\%")
+        let like = "%" + q.replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "%", with: "\\%")
             .replacingOccurrences(of: "_", with: "\\_") + "%"
         var out = SearchResults()
         out.tracks = loadTracks(sql: """

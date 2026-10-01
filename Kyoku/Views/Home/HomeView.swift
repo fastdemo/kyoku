@@ -15,7 +15,7 @@ struct HomeView: View {
 
             GroupBox("Music Folder") {
                 HStack {
-                    Text(container.musicFolderAccess.hasFolder ? "Configured" : "Not chosen")
+                    Text(container.readyMusicFolderAccess.hasFolder ? "Configured" : "Not chosen")
                         .foregroundStyle(.secondary)
                     Spacer()
                     Button("Choose…") { pickFolder() }
@@ -32,7 +32,7 @@ struct HomeView: View {
             }
 
             GroupBox("Library") {
-                Text("\(container.library.tracks.count) tracks indexed")
+                Text("\(container.readyLibrary.tracks.count) tracks indexed")
                     .foregroundStyle(.secondary)
             }
 
@@ -48,18 +48,11 @@ struct HomeView: View {
     }
 
     private func pickFolder() {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.canCreateDirectories = true
-        if panel.runModal() == .OK, let url = panel.url {
-            container.musicFolderAccess.chooseFolder(url)
-        }
+        _ = FolderPicker.pickAndStoreMusicFolder(access: container.readyMusicFolderAccess)
     }
 
     private func checkBackend() async {
-        if let engine = container.downloads as? SpotDLEngine {
+        if let engine = container.readyDownloads as? SpotDLEngine {
             backendAvailable = await engine.isAvailable()
         } else {
             backendAvailable = false

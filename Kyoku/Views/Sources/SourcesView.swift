@@ -13,10 +13,10 @@ struct SourcesView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
-            if container.sources.sources.isEmpty {
+            if container.readySources.sources.isEmpty {
                 emptyState
             } else {
-                List(container.sources.sources) { source in
+                List(container.readySources.sources) { source in
                     SourceRow(source: source, runningJobID: runningJobID)
                 }
                 .listStyle(.inset)
@@ -67,7 +67,7 @@ private struct SourceRow: View {
     @State private var confirmDelete = false
 
     var body: some View {
-        let jobs = container.syncJobs.jobs.filter { $0.sourceID == source.id }
+        let jobs = container.readySyncJobs.jobs.filter { $0.sourceID == source.id }
         let snapshotCount = snapshotTrackCount
         HStack(spacing: 12) {
             Image(systemName: icon)
@@ -101,7 +101,7 @@ private struct SourceRow: View {
         .padding(.vertical, 4)
         .contextMenu {
             Button(source.enabled ? "Pause" : "Resume") {
-                container.sources.setEnabled(id: source.id, enabled: !source.enabled)
+                container.readySources.setEnabled(id: source.id, enabled: !source.enabled)
             }
             if let job = jobs.first {
                 Button("Sync Now") {
@@ -116,7 +116,7 @@ private struct SourceRow: View {
         }
         .confirmationDialog("Delete this source?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete Source", role: .destructive) {
-                container.sources.remove(id: source.id)
+                container.readySources.remove(id: source.id)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -137,7 +137,7 @@ private struct SourceRow: View {
     private var snapshotTrackCount: Int? {
         // Cheap: read from the snapshot row without decoding JSON.
         // SourceStore exposes full entries; count suffices here.
-        let entries = container.sources.loadSnapshot(sourceID: source.id)
+        let entries = container.readySources.loadSnapshot(sourceID: source.id)
         return entries.isEmpty ? nil : entries.count
     }
 
@@ -170,12 +170,12 @@ private struct SourceRow: View {
 enum SyncNowRunner {
     static func run(jobID: String, container: AppContainer) {
         Task { @MainActor in
-            container.scheduler.markRunning(jobID)
-            await container.syncEngine.run(jobID: jobID)
-            container.scheduler.markFinished(jobID)
-            container.syncJobs.refresh()
-            container.sources.refresh()
-            container.automation.refresh()
+            container.readyScheduler.markRunning(jobID)
+            await container.readySyncEngine.run(jobID: jobID)
+            container.readyScheduler.markFinished(jobID)
+            container.readySyncJobs.refresh()
+            container.readySources.refresh()
+            container.readyAutomation.refresh()
         }
     }
 }

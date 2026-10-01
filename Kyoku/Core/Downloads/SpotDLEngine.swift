@@ -39,6 +39,25 @@ actor SpotDLEngine: DownloadEngine {
         (try? await spotdlBinary()) != nil
     }
 
+    /// Backend version string for Settings display (nil when unavailable
+    /// or when --version fails). Best-effort, short timeout — Settings
+    /// must never hang on a broken backend.
+    func backendVersion() async -> String? {
+        guard let binary = try? await spotdlBinary() else { return nil }
+        do {
+            let result = try await runner.run(
+                executable: binary, arguments: ["--version"],
+                timeout: 15)
+            let raw = (result.stdout + result.stderr)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !raw.isEmpty else { return nil }
+            // spotdl --version prints like "4.5.0"; keep the first token.
+            return raw.split(separator: "\n").first.map(String.init)
+        } catch {
+            return nil
+        }
+    }
+
     // MARK: - DownloadEngine
 
     func classifySource(_ input: String) -> SourceKind {
@@ -122,8 +141,14 @@ actor SpotDLEngine: DownloadEngine {
         destination: URL
     ) async throws -> AsyncThrowingStream<DownloadProgress, Error> {
         let binary = try await spotdlBinary()
-        let taskID = UUID().uuidString
-        running[taskID] = UUID()
+        // Registration contract with the queue: DownloadQueue sets
+        // `registrationHint` to its DownloadTask.id before calling, so
+        // cancel(taskID:) can terminate THIS subprocess via
+        // ProcessRunner.terminate(registration:). Falls back to a UUID
+        // when the engine is used standalone (tests, previews).
+        let registration = registrationHint ?? UUID().uuidString
+        registrationHint = nil
+        running[registration] = UUID()
 
         return AsyncThrowingStream { continuation in
             Task {
@@ -145,7 +170,7 @@ actor SpotDLEngine: DownloadEngine {
                     let result = try await self.runner.run(
                         executable: binary,
                         arguments: args,
-                        registration: taskID,
+                        registration: registration,
                         timeout: self.downloadTimeout
                     ) { line in
                         if line.contains("Downloaded") {
@@ -171,15 +196,25 @@ actor SpotDLEngine: DownloadEngine {
                 } catch {
                     continuation.finish(throwing: error)
                 }
-                self.running.removeValue(forKey: taskID)
+                self.running.removeValue(forKey: registration)
             }
         }
     }
 
+    /// Set by DownloadQueue before downloadTrack so cancel(taskID:) maps
+    /// to the live subprocess. Actor-isolated: queue and engine hop
+    /// through the actor, so no race.
+    var registrationHint: String?
+
+    func setRegistrationHint(_ id: String?) async { registrationHint = id }
+
     func cancel(taskID: String) async {
-        // Cooperative cancellation is via task cancellation (ProcessRunner
-        // kills the subprocess). This is a best-effort handle for UI code
-        // holding only a task ID.
+        // Real cancellation: terminate the backend subprocess by its
+        // registration ID. The runner's poll loop observes the kill;
+        // the queue's cancel flag guarantees .cancelled state even if
+        // the backend surfaces a non-zero exit instead of CancellationError.
+        await runner.terminate(registration: taskID)
+        running.removeValue(forKey: taskID)
         logger.info("Cancel requested: \(taskID)")
     }
 

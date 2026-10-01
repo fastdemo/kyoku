@@ -44,6 +44,20 @@ struct SyncJobConfig: Identifiable, Hashable, Sendable {
     /// Destination folder path (absolute). Falls back to the music folder
     /// root when blank.
     var destination: String
+    /// Security-scoped bookmark for `destination` (custom destinations
+    /// outside the music subtree need their own persisted access).
+    /// Nil = destination is inside the managed music folder (covered by
+    /// MusicFolderAccess) or blank (music root itself).
+    /// Excluded from Hashable (Data is not Hashable; identity is the id).
+    var destinationBookmark: Data?
+
+    static func == (lhs: SyncJobConfig, rhs: SyncJobConfig) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     var profileID: String
     var schedule: SyncSchedule
     var removalPolicy: RemovalPolicy
@@ -56,7 +70,8 @@ struct SyncJobConfig: Identifiable, Hashable, Sendable {
     var updatedAt: Date
 
     init(id: String = UUID().uuidString, sourceID: String, name: String = "",
-         destination: String = "", profileID: String = DownloadProfile.appleLibrary.id,
+         destination: String = "", destinationBookmark: Data? = nil,
+         profileID: String = DownloadProfile.appleLibrary.id,
          schedule: SyncSchedule = .manual, removalPolicy: RemovalPolicy = .ask,
          enabled: Bool = true, lastRunAt: Date? = nil, lastSuccessAt: Date? = nil,
          lastError: String? = nil, consecutiveFailures: Int = 0,
@@ -65,6 +80,7 @@ struct SyncJobConfig: Identifiable, Hashable, Sendable {
         self.sourceID = sourceID
         self.name = name
         self.destination = destination
+        self.destinationBookmark = destinationBookmark
         self.profileID = profileID
         self.schedule = schedule
         self.removalPolicy = removalPolicy

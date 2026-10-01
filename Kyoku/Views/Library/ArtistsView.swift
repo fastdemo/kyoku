@@ -12,12 +12,12 @@ struct ArtistsView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            if container.library.artists.isEmpty {
+            if container.readyLibrary.artists.isEmpty {
                 emptyState
             } else {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(container.library.artists) { artist in
+                        ForEach(container.readyLibrary.artists) { artist in
                             artistCell(artist)
                         }
                     }
@@ -52,7 +52,7 @@ struct ArtistsView: View {
         .onTapGesture { selected = artist }
         .contextMenu {
             Button("Play All") {
-                let all = container.library.tracksForArtist(id: artist.id)
+                let all = container.readyLibrary.tracksForArtist(id: artist.id)
                 if !all.isEmpty { container.player?.playTracks(all) }
             }
         }
@@ -78,8 +78,8 @@ struct ArtistDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        let albums = container.library.albumsForArtist(id: artist.id)
-        let tracks = container.library.tracksForArtist(id: artist.id)
+        let albums = container.readyLibrary.albumsForArtist(id: artist.id)
+        let tracks = container.readyLibrary.tracksForArtist(id: artist.id)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {

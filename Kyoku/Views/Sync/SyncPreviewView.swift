@@ -50,7 +50,7 @@ struct SyncPreviewView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .task {
             previewTask = Task {
-                if let result = await container.syncEngine.preview(jobID: job.id) {
+                if let result = await container.readySyncEngine.preview(jobID: job.id) {
                     if !Task.isCancelled {
                         changes = result.changes
                         total = result.total

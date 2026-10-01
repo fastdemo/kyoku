@@ -9,11 +9,11 @@ struct QueueView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
-            if container.queue.tasks.isEmpty {
+            if container.readyQueue.tasks.isEmpty {
                 emptyState
             } else {
                 List {
-                    ForEach(container.queue.tasks) { task in
+                    ForEach(container.readyQueue.tasks) { task in
                         TaskRow(task: task)
                     }
                 }
@@ -32,7 +32,7 @@ struct QueueView: View {
             Spacer()
             if hasFinished {
                 Button("Clear Finished") {
-                    container.queue.clearFinished()
+                    container.readyQueue.clearFinished()
                 }
             }
         }
@@ -41,7 +41,7 @@ struct QueueView: View {
     }
 
     private var hasFinished: Bool {
-        container.queue.tasks.contains {
+        container.readyQueue.tasks.contains {
             $0.state == .done || $0.state == .failed || $0.state == .cancelled
         }
     }
@@ -124,10 +124,10 @@ private struct TaskRow: View {
     private var actions: some View {
         switch task.state {
         case .pending, .resolving, .downloading, .processing:
-            Button("Cancel") { container.queue.cancel(taskID: task.id) }
+            Button("Cancel") { container.readyQueue.cancel(taskID: task.id) }
                 .buttonStyle(.link)
         case .failed:
-            Button("Retry") { container.queue.retry(taskID: task.id) }
+            Button("Retry") { container.readyQueue.retry(taskID: task.id) }
         case .done, .cancelled:
             EmptyView()
         }

@@ -14,7 +14,7 @@ struct PlaylistsView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedID) {
-                ForEach(container.library.playlists) { playlist in
+                ForEach(container.readyLibrary.playlists) { playlist in
                     Label(playlist.name, systemImage: "music.note.list")
                         .tag(playlist.id)
                         .contextMenu {
@@ -43,7 +43,7 @@ struct PlaylistsView: View {
             }
         } detail: {
             if let selectedID,
-               let playlist = container.library.playlists.first(where: { $0.id == selectedID }) {
+               let playlist = container.readyLibrary.playlists.first(where: { $0.id == selectedID }) {
                 PlaylistDetailView(playlist: playlist)
             } else {
                 VStack(spacing: 8) {
@@ -62,7 +62,7 @@ struct PlaylistsView: View {
             TextField("Name", text: $newName)
             Button("Cancel", role: .cancel) { newName = "" }
             Button("Create") {
-                let created = container.library.createPlaylist(name: newName)
+                let created = container.readyLibrary.createPlaylist(name: newName)
                 newName = ""
                 selectedID = created.id
             }
@@ -75,7 +75,7 @@ struct PlaylistsView: View {
             Button("Cancel", role: .cancel) {}
             Button("Rename") {
                 if let renamingID {
-                    container.library.renamePlaylist(id: renamingID, name: renameText)
+                    container.readyLibrary.renamePlaylist(id: renamingID, name: renameText)
                 }
                 renamingID = nil
             }
@@ -90,7 +90,7 @@ struct PlaylistsView: View {
         ) {
             Button("Delete Playlist", role: .destructive) {
                 if let showingDelete {
-                    container.library.deletePlaylist(id: showingDelete.id)
+                    container.readyLibrary.deletePlaylist(id: showingDelete.id)
                     if selectedID == showingDelete.id { selectedID = nil }
                 }
                 showingDelete = nil
@@ -109,7 +109,7 @@ struct PlaylistDetailView: View {
     var playlist: Playlist
 
     var body: some View {
-        let tracks = container.library.playlistTracks(id: playlist.id)
+        let tracks = container.readyLibrary.playlistTracks(id: playlist.id)
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -140,7 +140,7 @@ struct PlaylistDetailView: View {
                         TrackRow(track: track, context: tracks)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
-                                    container.library.removeFromPlaylist(
+                                    container.readyLibrary.removeFromPlaylist(
                                         playlistID: playlist.id, trackID: track.id)
                                 } label: {
                                     Label("Remove", systemImage: "trash")
@@ -157,7 +157,7 @@ struct PlaylistDetailView: View {
                         var destIndex = dest
                         for index in source where index < dest { destIndex -= 1 }
                         ids.insert(contentsOf: moved, at: min(destIndex, ids.count))
-                        container.library.reorderPlaylist(playlistID: playlist.id, orderedTrackIDs: ids)
+                        container.readyLibrary.reorderPlaylist(playlistID: playlist.id, orderedTrackIDs: ids)
                     }
                 }
                 .listStyle(.inset)

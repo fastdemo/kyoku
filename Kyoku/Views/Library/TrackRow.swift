@@ -15,9 +15,18 @@ struct TrackRow: View {
                             localPath: track.localPath, size: 40)
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text(track.title)
-                    .lineLimit(1)
-                    .foregroundStyle(track.isMissing ? .secondary : .primary)
+                HStack(spacing: 6) {
+                    Text(track.title)
+                        .lineLimit(1)
+                        .foregroundStyle(track.isAvailable ? .primary : .secondary)
+                    if !track.isAvailable {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                            .help("File unavailable — the audio file is missing from disk. Metadata is preserved.")
+                            .accessibilityLabel("File missing")
+                    }
+                }
                 Text(track.artist)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -47,8 +56,4 @@ struct TrackRow: View {
     private func formatDuration(_ seconds: Int) -> String {
         String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
-}
-
-private extension Track {
-    var isMissing: Bool { localPath == nil }
 }

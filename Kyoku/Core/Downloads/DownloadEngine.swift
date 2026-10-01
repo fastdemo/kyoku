@@ -15,8 +15,9 @@ enum DownloadState: String, Sendable {
 ///
 /// Phase 1: `resolvedSong` carries discovery metadata (title/artist/album,
 /// duration, cover URL, candidate download URL) decoded from
-/// `spotdl save --preload`. Phase 3 adds retry counts, error detail,
-/// and sync-job linkage.
+/// `spotdl save --preload`. Phase 3 added sync-job linkage. Phase 4 adds
+/// retry state: `attempts` counts completed attempts (persisted, survives
+/// restart); `nextRetryAt` gates the worker until backoff elapses.
 struct DownloadTask: Identifiable, Sendable {
     let id: String
     var sourceURL: String
@@ -33,6 +34,52 @@ struct DownloadTask: Identifiable, Sendable {
     var syncJobID: String?
     var syncRunID: String?
     var sourceID: String?
+    /// DownloadProfile ID to use for this task. Set at enqueue time: the
+    /// sync job's profile for job tasks, the global default for one-offs.
+    /// Persisted so restarts and retries keep the same profile even if the
+    /// user later changes the default. Nil (pre-v5 rows) = default.
+    var profileID: String?
+    /// Completed attempts (failures + successes). Reset on manual retry.
+    var attempts: Int
+    /// Earliest date the worker may run this task again. Nil = runnable now.
+    var nextRetryAt: Date?
+
+    /// Bounded exponential backoff: 1m, 2m, 4m … capped at 1h.
+    /// Matches SyncScheduler2.backoff (duplicated here so the queue stays
+    /// independent of the scheduler module).
+    static func backoffDelay(attempt: Int) -> TimeInterval {
+        min(60 * pow(2.0, Double(max(0, attempt))), 3600)
+    }
+
+    /// Maximum automatic attempts before a task parks as failed-permanent
+    /// and waits for manual retry. SyncEngine re-detects un-downloaded
+    /// tracks on later runs regardless (snapshot-driven), so parking is
+    /// safe: it stops hammering, not syncing.
+    static let maxAttempts = 5
+
+    init(id: String = UUID().uuidString, sourceURL: String,
+         state: DownloadState = .pending,
+         createdAt: Date = Date(), updatedAt: Date = Date(),
+         resolvedSong: ResolvedSong? = nil, lastError: String? = nil,
+         outputPath: String? = nil, syncJobID: String? = nil,
+         syncRunID: String? = nil, sourceID: String? = nil,
+         profileID: String? = nil,
+         attempts: Int = 0, nextRetryAt: Date? = nil) {
+        self.id = id
+        self.sourceURL = sourceURL
+        self.state = state
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.resolvedSong = resolvedSong
+        self.lastError = lastError
+        self.outputPath = outputPath
+        self.syncJobID = syncJobID
+        self.syncRunID = syncRunID
+        self.sourceID = sourceID
+        self.profileID = profileID
+        self.attempts = attempts
+        self.nextRetryAt = nextRetryAt
+    }
 }
 
 /// Internal API the whole app programs against. First impl: SpotDLEngine.
@@ -63,6 +110,13 @@ protocol DownloadEngine: Actor, Sendable {
     /// Cancel in-flight work for a task. Best-effort; the awaiting task
     /// also observes Swift cancellation directly.
     func cancel(taskID: String) async
+
+    /// Hint consumed by the next downloadTrack call to register the
+    /// subprocess under the queue's task ID, so cancel(taskID:) can kill
+    /// it. Set via setRegistrationHint (actor-isolated mutation from the
+    /// queue's actor). Default nil (engines without subprocesses ignore it).
+    var registrationHint: String? { get }
+    func setRegistrationHint(_ id: String?) async
 }
 
 /// What kind of source a user-provided string looks like.

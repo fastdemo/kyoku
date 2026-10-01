@@ -17,9 +17,9 @@ struct TrackContextMenu: ViewModifier {
             Button("Play Next") { container.player?.playNext(track) }
             Button("Add to Queue") { container.player?.addToQueue(track) }
             Menu("Add to Playlist") {
-                ForEach(container.library.playlists) { playlist in
+                ForEach(container.readyLibrary.playlists) { playlist in
                     Button(playlist.name) {
-                        container.library.addToPlaylist(playlistID: playlist.id, trackIDs: [track.id])
+                        container.readyLibrary.addToPlaylist(playlistID: playlist.id, trackIDs: [track.id])
                     }
                 }
             }
@@ -38,7 +38,7 @@ struct TrackContextMenu: ViewModifier {
             .disabled(track.localPath == nil)
             Divider()
             Button("Remove from Library") {
-                container.library.removeFromLibrary(trackID: track.id)
+                container.readyLibrary.removeFromLibrary(trackID: track.id)
             }
             Button("Delete File…") {
                 confirmDelete = true
@@ -50,7 +50,7 @@ struct TrackContextMenu: ViewModifier {
             titleVisibility: .visible
         ) {
             Button("Delete File", role: .destructive) {
-                _ = container.library.deleteFile(trackID: track.id)
+                _ = container.readyLibrary.deleteFile(trackID: track.id)
             }
             Button("Cancel", role: .cancel) {}
         } message: {

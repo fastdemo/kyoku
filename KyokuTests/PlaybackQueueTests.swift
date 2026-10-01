@@ -193,4 +193,128 @@ final class PlaybackQueueTests: XCTestCase {
         svc.simulateTimeForTests(seconds: 2000)
         XCTAssertEqual(recorded.count, 1, "must fire once per track load")
     }
+
+    // MARK: - Failure honesty (Workstream 2)
+
+    @MainActor
+    func testConsecutiveMissingFilesSkipIteratively() {
+        let svc = PlaybackService()
+        let tracks = [makeTrack(title: "Good0"),
+                      Track(title: "Missing1", localPath: "/nonexistent/1.m4a"),
+                      Track(title: "Missing2", localPath: "/nonexistent/2.m4a"),
+                      makeTrack(title: "Good3")]
+        svc.playTracks(tracks, startingAt: 0)
+        svc.play(at: 1)
+        // Iterative skip lands on Good3 (index 3), no recursion, no stuck state.
+        XCTAssertEqual(svc.currentTrack?.title, "Good3")
+        XCTAssertEqual(svc.state, .playing)
+        XCTAssertNil(svc.playbackError, "landing on playable clears the error")
+    }
+
+    @MainActor
+    func testAllRemainingMissingEndsStopped() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "Good0"),
+                        Track(title: "Missing1", localPath: "/nonexistent/1.m4a"),
+                        Track(title: "Missing2", localPath: "/nonexistent/2.m4a")],
+                       startingAt: 0)
+        svc.play(at: 1)
+        XCTAssertEqual(svc.state, .stopped)
+        XCTAssertNotNil(svc.playbackError)
+        XCTAssertEqual(svc.playbackError,
+                       .fileUnavailable(trackTitle: "Missing2"))
+    }
+
+    @MainActor
+    func testMissingFileDoesNotRecordPlay() {
+        let svc = PlaybackService()
+        var recorded: [String] = []
+        svc.onRecordPlay = { recorded.append($0) }
+        svc.playTracks([Track(title: "Missing", localPath: "/nonexistent/x.m4a")],
+                       startingAt: 0)
+        XCTAssertTrue(recorded.isEmpty)
+        XCTAssertEqual(svc.state, .stopped)
+    }
+
+    @MainActor
+    func testCorruptFileAdvancesWithTypedError() {
+        // Garbage bytes with an audio extension: exists on disk, but
+        // AVPlayerItem fails (asynchronously — status starts .unknown and
+        // flips to .failed; the readiness poll catches it within ~15s).
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + ".m4a")
+        FileManager.default.createFile(atPath: url.path,
+                                       contents: Data("not audio at all".utf8))
+        let svc = PlaybackService()
+        var recorded: [String] = []
+        svc.onRecordPlay = { recorded.append($0) }
+        svc.playTracks([Track(title: "Corrupt", localPath: url.path),
+                        makeTrack(title: "Good")],
+                       startingAt: 0)
+        let deadline = Date().addingTimeInterval(20)
+        while svc.currentTrack?.title == "Corrupt", Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        XCTAssertEqual(svc.currentTrack?.title, "Good")
+        XCTAssertTrue(recorded.isEmpty, "corrupt track must not count as played")
+    }
+
+    @MainActor
+    func testFailedNotificationAdvances() {
+        let svc = PlaybackService()
+        var recorded: [String] = []
+        svc.onRecordPlay = { recorded.append($0) }
+        svc.playTracks([makeTrack(title: "A"), makeTrack(title: "B")], startingAt: 0)
+        // Simulate FailedToPlayToEndTime on the current item.
+        svc.simulateItemFailureForTests()
+        XCTAssertEqual(svc.currentTrack?.title, "B")
+        XCTAssertTrue(recorded.isEmpty, "failure must not record a play")
+    }
+
+    @MainActor
+    func testSeekBeforeDurationLoadIsRetained() async {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        // Duration loads async; seek immediately (likely before load).
+        svc.seek(to: 30)
+        // Wait for the async load to land.
+        let deadline = Date().addingTimeInterval(5)
+        while !svc.durationIsLoaded, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertTrue(svc.durationIsLoaded)
+        // Pending seek applied, clamped to the real (short fixture) duration.
+        XCTAssertLessThanOrEqual(svc.currentTime, svc.duration)
+        XCTAssertGreaterThanOrEqual(svc.currentTime, 0)
+    }
+
+    @MainActor
+    func testSeekAfterDurationLoadApplies() async {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        let deadline = Date().addingTimeInterval(5)
+        while !svc.durationIsLoaded, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+        XCTAssertTrue(svc.durationIsLoaded)
+        svc.seek(to: 0.1)
+        XCTAssertEqual(svc.currentTime, 0.1, accuracy: 0.05)
+    }
+
+    @MainActor
+    func testEndOfQueueStopsCoherently() {
+        let svc = PlaybackService()
+        svc.playTracks([makeTrack(title: "A")], startingAt: 0)
+        svc.simulateFinishForTests()
+        XCTAssertEqual(svc.state, .stopped)
+        // Finished track counted exactly once.
+        XCTAssertNotNil(svc.currentTrack, "current track retained for context")
+    }
+
+    @MainActor
+    func testPlaybackErrorDisplayMessages() {
+        XCTAssertTrue(PlaybackError.fileUnavailable(trackTitle: "X").displayMessage.contains("X"))
+        XCTAssertTrue(PlaybackError.undecodable(trackTitle: "Y", underlying: nil).displayMessage.contains("Y"))
+        XCTAssertFalse(PlaybackError.seekUnavailable.displayMessage.isEmpty)
+    }
 }

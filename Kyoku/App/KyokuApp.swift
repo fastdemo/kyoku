@@ -22,14 +22,31 @@ struct KyokuApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(container)
-                .task {
-                    // Start actor-bound services on the main actor.
-                    // (AppContainer.init is nonisolated, so actor-bound
-                    // startup is deferred to here.)
-                    await container.start()
+            Group {
+                switch container.bootState {
+                case .recovery(let error, let path):
+                    // Recovery owns the screen: no library UI, no workers,
+                    // no onboarding — nothing touches the broken DB.
+                    DatabaseRecoveryView(error: error, dbPath: path)
+                        .environmentObject(container)
+                case .ready:
+                    if container.settings.needsOnboarding(
+                        hasFolder: container.readyMusicFolderAccess.hasFolder) {
+                        OnboardingView()
+                            .environmentObject(container)
+                    } else {
+                        RootView()
+                            .environmentObject(container)
+                    }
                 }
+            }
+            .task {
+                // Start actor-bound services on the main actor.
+                // (AppContainer.init is nonisolated, so actor-bound
+                // startup is deferred to here. start() is a no-op in
+                // recovery state.)
+                container.start()
+            }
         }
         .commands {
             SidebarCommands()

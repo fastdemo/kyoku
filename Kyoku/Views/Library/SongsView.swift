@@ -61,7 +61,7 @@ struct SongsView: View {
     }
 
     private var sorted: [Track] {
-        let tracks = container.library.tracks
+        let tracks = container.readyLibrary.tracks
         let ordered: [Track] = switch sort {
         case .title: tracks.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
         case .artist: tracks.sorted { $0.artist.localizedCompare($1.artist) == .orderedAscending }

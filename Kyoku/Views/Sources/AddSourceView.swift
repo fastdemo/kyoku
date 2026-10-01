@@ -112,7 +112,7 @@ struct AddSourceView: View {
         isResolving = true
         resolveTask = Task {
             do {
-                let tracks = try await container.downloads.resolveSource(query)
+                let tracks = try await container.readyDownloads.resolveSource(query)
                 if !Task.isCancelled {
                     discovered = tracks
                     if tracks.isEmpty {
@@ -132,13 +132,13 @@ struct AddSourceView: View {
     /// Persist the source row (idempotent by URL), return it.
     private func ensureSource() -> Source {
         let query = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let existing = container.sources.sources.first(where: { $0.url == query }) {
+        if let existing = container.readySources.sources.first(where: { $0.url == query }) {
             return existing
         }
         // Classify synchronously (no network) for the kind string.
         // SourceKind has no raw value; derive a stable string per case.
         let kind: String
-        switch container.downloads.classifySource(query) {
+        switch container.readyDownloads.classifySource(query) {
         case .spotifyTrack: kind = "spotifyTrack"
         case .spotifyPlaylist: kind = "spotifyPlaylist"
         case .spotifyAlbum: kind = "spotifyAlbum"
@@ -149,7 +149,7 @@ struct AddSourceView: View {
         case .spotdlFile: kind = "spotdlFile"
         case .searchTerm: kind = "searchTerm"
         }
-        return container.sources.add(url: query, kind: kind, displayName: guessedName)
+        return container.readySources.add(url: query, kind: kind, displayName: guessedName)
     }
 
     private var guessedName: String {
@@ -163,12 +163,12 @@ struct AddSourceView: View {
 
     private func downloadOnce() {
         let source = ensureSource()
-        container.sources.saveSnapshot(
+        container.readySources.saveSnapshot(
             sourceID: source.id,
             entries: discovered.enumerated().map {
                 SnapshotEntry.from(song: $0.element.song, position: $0.offset)
             })
-        container.queue.enqueue(discovered.map(\.song), sourceURL: source.url,
+        container.readyQueue.enqueue(discovered.map(\.song), sourceURL: source.url,
                                 sourceID: source.id)
     }
 
@@ -176,7 +176,7 @@ struct AddSourceView: View {
         pendingSource = ensureSource()
         // Snapshot now so the first sync diffs correctly.
         if let pendingSource {
-            container.sources.saveSnapshot(
+            container.readySources.saveSnapshot(
                 sourceID: pendingSource.id,
                 entries: discovered.enumerated().map {
                     SnapshotEntry.from(song: $0.element.song, position: $0.offset)

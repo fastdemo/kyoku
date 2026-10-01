@@ -11,7 +11,7 @@ struct ActivityView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            let events = container.automation.recentActivity
+            let events = container.readyAutomation.recentActivity
             if events.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "list.bullet.rectangle")

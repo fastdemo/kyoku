@@ -18,10 +18,10 @@ struct SyncJobsView: View {
             }
             .padding(20)
             Divider()
-            if container.syncJobs.jobs.isEmpty {
+            if container.readySyncJobs.jobs.isEmpty {
                 emptyState
             } else {
-                List(container.syncJobs.jobs) { job in
+                List(container.readySyncJobs.jobs) { job in
                     SyncJobRow(job: job,
                                isRunning: runningJobID == job.id,
                                onSyncNow: { syncNow(job) },
@@ -63,12 +63,12 @@ struct SyncJobsView: View {
         guard runningJobID == nil else { return }
         runningJobID = job.id
         Task { @MainActor in
-            container.scheduler.markRunning(job.id)
-            await container.syncEngine.run(jobID: job.id)
-            container.scheduler.markFinished(job.id)
-            container.syncJobs.refresh()
-            container.sources.refresh()
-            container.automation.refresh()
+            container.readyScheduler.markRunning(job.id)
+            await container.readySyncEngine.run(jobID: job.id)
+            container.readyScheduler.markFinished(job.id)
+            container.readySyncJobs.refresh()
+            container.readySources.refresh()
+            container.readyAutomation.refresh()
             runningJobID = nil
         }
     }
@@ -83,7 +83,7 @@ private struct SyncJobRow: View {
     var onEdit: () -> Void
 
     var body: some View {
-        let source = container.sources.sources.first { $0.id == job.sourceID }
+        let source = container.readySources.sources.first { $0.id == job.sourceID }
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -97,7 +97,7 @@ private struct SyncJobRow: View {
                 Spacer()
                 statusBadge
             }
-            if isRunning, let progress = container.syncEngine.progress, progress.jobID == job.id {
+            if isRunning, let progress = container.readySyncEngine.progress, progress.jobID == job.id {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
                     Text(progress.phase)
@@ -121,7 +121,7 @@ private struct SyncJobRow: View {
                     .disabled(isRunning || !(source?.enabled ?? true))
                 Button("Preview") { onPreview() }
                 Button(job.enabled ? "Pause" : "Resume") {
-                    container.syncJobs.setEnabled(id: job.id, enabled: !job.enabled)
+                    container.readySyncJobs.setEnabled(id: job.id, enabled: !job.enabled)
                 }
                 Spacer()
                 Button("Edit") { onEdit() }
@@ -132,7 +132,7 @@ private struct SyncJobRow: View {
         .padding(.vertical, 6)
         .contextMenu {
             Button("Delete Job", role: .destructive) {
-                container.syncJobs.remove(id: job.id)
+                container.readySyncJobs.remove(id: job.id)
             }
         }
     }
@@ -158,13 +158,13 @@ private struct SyncJobRow: View {
 
     private var statusLine: String {
         var parts: [String] = []
-        let count = container.sources.loadSnapshot(
+        let count = container.readySources.loadSnapshot(
             sourceID: job.sourceID).count
         if count > 0 { parts.append("\(count) track\(count == 1 ? "" : "s")") }
         if !job.destination.isEmpty {
             parts.append(URL(fileURLWithPath: job.destination).lastPathComponent)
         }
-        parts.append(container.scheduler.nextCheckDescription(job))
+        parts.append(container.readyScheduler.nextCheckDescription(job))
         if let last = job.lastSuccessAt {
             parts.append("Last synced \(last.formatted(.relative(presentation: .named)))")
         }

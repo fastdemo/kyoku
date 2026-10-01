@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Needs Attention: persistent inbox of automation problems with actions.
@@ -12,7 +13,7 @@ struct NeedsAttentionView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            let items = container.automation.openAttention
+            let items = container.readyAutomation.openAttention
             if items.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "checkmark.circle")
@@ -58,7 +59,7 @@ private struct AttentionRow: View {
                 actionButtons
                 Spacer()
                 Button("Ignore") {
-                    container.automation.resolveAttention(id: item.id)
+                    container.readyAutomation.resolveAttention(id: item.id)
                 }
                 .buttonStyle(.link)
             }
@@ -72,6 +73,7 @@ private struct AttentionRow: View {
         case "downloadFailed": return "arrow.down.circle"
         case "sourceFailed": return "antenna.radiowaves.left.and.right"
         case "removalPending": return "trash"
+        case "musicFolderInaccessible", "destinationInaccessible": return "folder.badge.questionmark"
         default: return "exclamationmark.triangle"
         }
     }
@@ -82,31 +84,47 @@ private struct AttentionRow: View {
         case "downloadFailed":
             if let taskID = item.taskID {
                 Button("Retry") {
-                    container.queue.retry(taskID: taskID)
-                    container.automation.resolveAttention(id: item.id)
+                    container.readyQueue.retry(taskID: taskID)
+                    container.readyAutomation.resolveAttention(id: item.id)
                 }
             } else if let jobID = item.syncJobID {
                 Button("Retry Sync") {
                     SyncNowRunner.run(jobID: jobID, container: container)
-                    container.automation.resolveAttention(id: item.id)
+                    container.readyAutomation.resolveAttention(id: item.id)
                 }
             }
         case "sourceFailed":
             if let jobID = item.syncJobID {
                 Button("Retry Sync") {
                     SyncNowRunner.run(jobID: jobID, container: container)
-                    container.automation.resolveAttention(id: item.id)
+                    container.readyAutomation.resolveAttention(id: item.id)
                 }
+            }
+        case "musicFolderInaccessible":
+            Button("Reconnect in Settings") {
+                // Settings is a separate scene; resolving here avoids a
+                // dead-end item. The relink prompt lives in Settings →
+                // Library, which re-validates on pick.
+                container.readyAutomation.resolveAttention(id: item.id)
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+        case "destinationInaccessible":
+            // Repaired in the job editor (destination picker rewrites the
+            // bookmark). Resolving here would hide a still-broken job.
+            if item.syncJobID != nil {
+                Text("Fix in Sync Jobs → Edit")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         case "removalPending":
             Button("Keep in Library") {
-                container.automation.resolveAttention(id: item.id)
+                container.readyAutomation.resolveAttention(id: item.id)
             }
             if let trackURL = item.trackURL,
-               let track = container.library.tracks.first(where: { $0.sourceURL == trackURL }) {
+               let track = container.readyLibrary.tracks.first(where: { $0.sourceURL == trackURL }) {
                 Button("Remove") {
-                    container.library.removeFromLibrary(trackID: track.id)
-                    container.automation.resolveAttention(id: item.id)
+                    container.readyLibrary.removeFromLibrary(trackID: track.id)
+                    container.readyAutomation.resolveAttention(id: item.id)
                 }
             }
         default:

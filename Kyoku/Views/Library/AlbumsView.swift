@@ -12,12 +12,12 @@ struct AlbumsView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            if container.library.albums.isEmpty {
+            if container.readyLibrary.albums.isEmpty {
                 emptyState
             } else {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(container.library.albums) { album in
+                        ForEach(container.readyLibrary.albums) { album in
                             albumCell(album)
                         }
                     }
@@ -35,7 +35,7 @@ struct AlbumsView: View {
     }
 
     private func albumCell(_ album: Album) -> some View {
-        let tracks = container.library.tracksForAlbum(id: album.id)
+        let tracks = container.readyLibrary.tracksForAlbum(id: album.id)
         let art = tracks.first
         return VStack(alignment: .leading, spacing: 6) {
             ArtworkView(artworkPath: album.artworkPath ?? art?.artworkPath,
@@ -51,7 +51,7 @@ struct AlbumsView: View {
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             // Double-click plays the album.
-            let all = container.library.tracksForAlbum(id: album.id)
+            let all = container.readyLibrary.tracksForAlbum(id: album.id)
             if !all.isEmpty { container.player?.playTracks(all) }
         }
         .onTapGesture(count: 1) {
@@ -59,11 +59,11 @@ struct AlbumsView: View {
         }
         .contextMenu {
             Button("Play Album") {
-                let all = container.library.tracksForAlbum(id: album.id)
+                let all = container.readyLibrary.tracksForAlbum(id: album.id)
                 if !all.isEmpty { container.player?.playTracks(all) }
             }
             Button("Add to Queue") {
-                for track in container.library.tracksForAlbum(id: album.id) {
+                for track in container.readyLibrary.tracksForAlbum(id: album.id) {
                     container.player?.addToQueue(track)
                 }
             }
@@ -91,7 +91,7 @@ struct AlbumDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        let tracks = container.library.tracksForAlbum(id: album.id)
+        let tracks = container.readyLibrary.tracksForAlbum(id: album.id)
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 16) {
                 ArtworkView(artworkPath: album.artworkPath ?? tracks.first?.artworkPath,

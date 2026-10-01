@@ -6,8 +6,17 @@ struct SearchView: View {
     @EnvironmentObject private var container: AppContainer
     var query: String
 
+    /// Remote cover fallback for an album row without managed art.
+    /// Derived from the already-loaded in-memory track list (no extra
+    /// query, no media parsing). Nil when nothing suitable exists.
+    private func fallbackCoverURL(for album: Album) -> String? {
+        container.readyLibrary.tracks.first {
+            $0.albumID == album.id && $0.coverURL?.isEmpty == false
+        }?.coverURL
+    }
+
     var body: some View {
-        let results = container.library.search(query)
+        let results = container.readyLibrary.search(query)
         VStack(alignment: .leading, spacing: 0) {
             Text("Results for “\(query)”")
                 .font(.title2).fontWeight(.semibold)
@@ -37,10 +46,12 @@ struct SearchView: View {
                         Section("Albums") {
                             ForEach(results.albums) { album in
                                 HStack(spacing: 10) {
-                                    let art = container.library.tracksForAlbum(id: album.id).first
+                                    // Managed album art first (no media
+                                    // parsing); fall back to remote cover
+                                    // only. Never parse audio per search row.
                                     ArtworkView(artworkPath: album.artworkPath,
-                                                coverURL: art?.coverURL,
-                                                localPath: art?.localPath, size: 40)
+                                                coverURL: fallbackCoverURL(for: album),
+                                                localPath: nil, size: 40)
                                     VStack(alignment: .leading) {
                                         Text(album.title).lineLimit(1)
                                         Text(album.artist)

@@ -24,18 +24,32 @@ final class PlaybackService: ObservableObject {
     @Published var volume: Float = 1.0 { didSet { player?.volume = volume } }
     @Published var isShuffled: Bool = false
     @Published var repeatMode: RepeatMode = .off
-    /// Last playback failure for views to surface (missing/corrupt file).
-    @Published private(set) var lastError: String?
+    /// Typed last failure for views to surface (nil = no error).
+    @Published private(set) var playbackError: PlaybackError?
+    /// String convenience for existing views (mirrors playbackError).
+    var lastError: String? { playbackError?.displayMessage }
+    /// Whether duration came from the item (true) or is still metadata-only.
+    @Published private(set) var durationIsLoaded = false
 
     private var player: AVPlayer?
     private var timeObserver: Any?
+    /// App-lifetime end-of-track observer (DidPlayToEndTime, any item;
+    /// trackDidFinish verifies identity). Removed in deinit.
     private var endObserver: NSObjectProtocol?
+    /// Per-item failure observer (FailedToPlayToEndTime on the CURRENT
+    /// item only). Reinstalled on every play(at:); removed in stop() and
+    /// whenever the item is replaced. The app-lifetime end-of-track
+    /// observer is separate (see init) and removed in deinit.
+    private var failureObserver: NSObjectProtocol?
     /// Shuffle order: indices into `queue`. Rebuilt on shuffle toggle /
     /// queue change; `shufflePosition` tracks where we are in it.
     private var shuffleOrder: [Int] = []
     private var shufflePosition: Int?
     /// Whether the current track already counted as a play.
     private var countedPlayForTrackID: String?
+    /// Seek requested while duration was unavailable; applied once the
+    /// item reports a usable duration. Cleared on track change / failure.
+    private var pendingSeek: Double?
     private let logger = KyokuLogger(subsystem: "core", category: "playback")
 
     /// Library callback for history. Set by AppContainer (avoids a
@@ -50,6 +64,18 @@ final class PlaybackService: ObservableObject {
             Task { @MainActor [weak self] in
                 self?.trackDidFinish(note.object as? AVPlayerItem)
             }
+        }
+    }
+
+    deinit {
+        if let endObserver {
+            NotificationCenter.default.removeObserver(endObserver)
+        }
+        if let failureObserver {
+            NotificationCenter.default.removeObserver(failureObserver)
+        }
+        if let timeObserver {
+            player?.removeTimeObserver(timeObserver)
         }
     }
 
@@ -254,8 +280,18 @@ final class PlaybackService: ObservableObject {
     }
 
     func seek(to seconds: Double) {
-        guard let player, duration > 0 else { return }
+        guard let player else {
+            playbackError = .seekUnavailable
+            return
+        }
+        guard durationIsLoaded, duration > 0 else {
+            // Duration not ready: retain and apply when the item loads.
+            // Clamped against the real duration then (never silently drop).
+            pendingSeek = seconds
+            return
+        }
         let clamped = min(max(0, seconds), duration)
+        pendingSeek = nil
         player.seek(to: CMTime(seconds: clamped, preferredTimescale: 600))
         currentTime = clamped
     }
@@ -264,10 +300,13 @@ final class PlaybackService: ObservableObject {
         player?.pause()
         player?.replaceCurrentItem(with: nil)
         removeTimeObserver()
+        removeFailureObserver()
         currentTrack = nil
         currentIndex = nil
         currentTime = 0
         duration = 0
+        durationIsLoaded = false
+        pendingSeek = nil
         state = .stopped
         countedPlayForTrackID = nil
     }
@@ -276,27 +315,53 @@ final class PlaybackService: ObservableObject {
 
     /// Start playback at a queue index. Internal for production; exposed
     /// for tests (missing-file skip verification).
+    ///
+    /// Missing/unplayable tracks are skipped ITERATIVELY (loop, never
+    /// recursion): consecutive failures advance through the queue safely,
+    /// and an all-missing tail ends stopped with an honest error — never
+    /// a stuck `.playing`, never stack growth.
     func play(at index: Int) {
-        guard queue.indices.contains(index) else { return }
-        let track = queue[index]
-        guard let path = track.localPath,
-              FileManager.default.fileExists(atPath: path)
-        else {
-            // Missing file: surface + skip forward (never crash).
-            lastError = "File not found: \(track.title)"
-            logger.error("Missing file for track: \(track.title)")
-            currentIndex = index
-            currentTrack = track
-            // Try the next track; stop if nothing playable remains.
-            if let next = upcomingIndex(from: index) {
-                play(at: next)
-            } else {
-                state = .stopped
+        var candidate: Int? = index
+        var lastFailure: PlaybackError?
+        while let current = candidate, queue.indices.contains(current) {
+            let track = queue[current]
+            guard let path = track.localPath,
+                  FileManager.default.fileExists(atPath: path)
+            else {
+                lastFailure = .fileUnavailable(trackTitle: track.title)
+                logger.error("Missing file for track: \(track.title)")
+                currentIndex = current
+                currentTrack = track
+                countedPlayForTrackID = nil
+                candidate = upcomingIndex(from: current)
+                continue
             }
-            return
+            startItem(for: track, at: current)
+            // startItem either begins honest playback or records a failure
+            // and returns false (item already failed synchronously).
+            if state == .playing || state == .paused {
+                return
+            }
+            lastFailure = playbackError
+            candidate = upcomingIndex(from: current)
         }
-        lastError = nil
-        let item = AVPlayerItem(url: URL(fileURLWithPath: path))
+        // Nothing playable remains: coherent stopped state + last error.
+        playbackError = lastFailure
+        currentTime = 0
+        duration = 0
+        durationIsLoaded = false
+        state = .stopped
+    }
+
+    /// Begin playback of a verified-present file. Returns via state:
+    /// `.playing` on success; on synchronous item failure records
+    /// playbackError and leaves state alone for the caller to advance.
+    private func startItem(for track: Track, at index: Int) {
+        playbackError = nil
+        pendingSeek = nil
+        durationIsLoaded = false
+        trackLoadGeneration += 1
+        let item = AVPlayerItem(url: URL(fileURLWithPath: track.localPath!))
         if player == nil {
             player = AVPlayer(playerItem: item)
             player?.volume = volume
@@ -304,15 +369,29 @@ final class PlaybackService: ObservableObject {
             player?.replaceCurrentItem(with: item)
         }
         removeTimeObserver()
+        removeFailureObserver()
+        failureObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemFailedToPlayToEndTime,
+            object: item, queue: .main
+        ) { [weak self] note in
+            Task { @MainActor [weak self] in
+                self?.itemDidFail(note.object as? AVPlayerItem)
+            }
+        }
         let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
         timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
             Task { @MainActor [weak self] in
                 self?.tick(time: time)
             }
         }
-        // Duration: prefer the actual asset (what will play) over metadata.
-        let seconds = CMTimeGetSeconds(item.asset.duration)
-        duration = seconds.isFinite && seconds > 0 ? seconds : Double(track.duration)
+        // Synchronous failure check: some corrupt files fail immediately.
+        if item.status == .failed {
+            itemDidFail(item)
+            return
+        }
+        // Duration: metadata immediately (honest placeholder), real value
+        // async. Never blocks; pending seeks apply when it lands.
+        duration = Double(track.duration)
         currentTime = 0
         currentIndex = index
         if isShuffled {
@@ -321,8 +400,93 @@ final class PlaybackService: ObservableObject {
         }
         currentTrack = track
         countedPlayForTrackID = nil
+        // Observe readiness: corrupt files surface .failed asynchronously
+        // (status starts .unknown and may take seconds). Poll cheaply until
+        // ready-or-failed; on failure advance honestly. The poll is bounded
+        // (60 ticks) and cancelled implicitly by track change (generation).
+        let generation = trackLoadGeneration
+        observeItemReadiness(item, trackID: track.id, generation: generation)
+        loadDurationAsync(for: item, trackID: track.id)
         player?.play()
         state = .playing
+    }
+
+    /// Monotonic track-load generation: readiness polls from a superseded
+    /// load exit silently when a new track starts.
+    private var trackLoadGeneration = 0
+
+    private func observeItemReadiness(_ item: AVPlayerItem, trackID: String, generation: Int) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            for _ in 0 ..< 60 {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                // Superseded (new track started) or already handled: exit.
+                guard self.trackLoadGeneration == generation,
+                      self.currentTrack?.id == trackID
+                else { return }
+                if item.status == .failed {
+                    self.itemDidFail(item)
+                    return
+                }
+                if item.status == .readyToPlay { return }
+            }
+            // Still unknown after 15s: leave playing (backend may recover);
+            // the failure observer catches terminal errors when they arrive.
+        }
+    }
+
+    /// Resolve the real duration off the item without blocking. Applies
+    /// any pending seek, then marks duration loaded. Failures leave the
+    /// metadata fallback in place (never zero the progress bar).
+    private func loadDurationAsync(for item: AVPlayerItem, trackID: String) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            var resolved: Double?
+            if #available(macOS 13, *) {
+                do {
+                    let d = try await item.asset.load(.duration)
+                    let seconds = CMTimeGetSeconds(d)
+                    if seconds.isFinite, seconds > 0 { resolved = seconds }
+                } catch {
+                    // Keep metadata fallback; not a playback failure.
+                }
+            } else {
+                let seconds = CMTimeGetSeconds(item.asset.duration)
+                if seconds.isFinite, seconds > 0 { resolved = seconds }
+            }
+            // Stale load (track changed while awaiting)? Ignore.
+            guard self.currentTrack?.id == trackID else { return }
+            if let resolved {
+                self.duration = resolved
+                self.durationIsLoaded = true
+                if let pending = self.pendingSeek {
+                    self.pendingSeek = nil
+                    self.seek(to: pending)
+                }
+            }
+        }
+    }
+
+    /// AVPlayerItem failed (status .failed now, or FailedToPlayToEndTime
+    /// later). Records a typed error, clears play-count arming (a failure
+    /// must never count as a play), and advances to the next playable
+    /// track — or stops honestly when none remains.
+    private func itemDidFail(_ item: AVPlayerItem?) {
+        if let current = player?.currentItem, let item, current !== item { return }
+        guard let track = currentTrack else { return }
+        let underlying = (item?.error ?? player?.currentItem?.error)?.localizedDescription
+        playbackError = .undecodable(trackTitle: track.title, underlying: underlying)
+        logger.error("Unplayable track: \(track.title) (\(underlying ?? "unknown"))")
+        countedPlayForTrackID = nil
+        player?.pause()
+        if let currentIndex, let next = upcomingIndex(from: currentIndex) {
+            play(at: next)
+        } else {
+            currentTime = 0
+            duration = 0
+            durationIsLoaded = false
+            state = .stopped
+        }
     }
 
     private func tick(time: CMTime) {
@@ -393,6 +557,13 @@ final class PlaybackService: ObservableObject {
         }
     }
 
+    private func removeFailureObserver() {
+        if let failureObserver {
+            NotificationCenter.default.removeObserver(failureObserver)
+            self.failureObserver = nil
+        }
+    }
+
 #if DEBUG
     // MARK: - Test hooks
 
@@ -404,6 +575,11 @@ final class PlaybackService: ObservableObject {
     /// Simulate the end-of-track notification (finish path).
     func simulateFinishForTests() {
         trackDidFinish(player?.currentItem)
+    }
+
+    /// Simulate FailedToPlayToEndTime on the current item.
+    func simulateItemFailureForTests() {
+        itemDidFail(player?.currentItem)
     }
 #endif
 }

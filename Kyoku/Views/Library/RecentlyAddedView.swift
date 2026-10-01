@@ -11,7 +11,7 @@ struct RecentlyAddedView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            let recent = container.library.recentlyAdded(limit: 200)
+            let recent = container.readyLibrary.recentlyAdded(limit: 200)
             if recent.isEmpty {
                 emptyState
             } else {
@@ -48,7 +48,7 @@ struct RecentlyPlayedView: View {
                 .font(.largeTitle).fontWeight(.bold)
                 .padding(20)
             Divider()
-            let recent = container.library.recentlyPlayed(limit: 200)
+            let recent = container.readyLibrary.recentlyPlayed(limit: 200)
             if recent.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "memories")

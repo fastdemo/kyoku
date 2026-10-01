@@ -213,4 +213,137 @@ enum Schema {
         "ALTER TABLE download_tasks ADD COLUMN sync_run_id TEXT REFERENCES sync_runs(id) ON DELETE SET NULL;",
         "ALTER TABLE download_tasks ADD COLUMN source_id TEXT REFERENCES sources(id) ON DELETE SET NULL;",
     ]
+
+    /// Phase 4 workstream 1: retry state + cleared-task tombstones +
+    /// source-URL uniqueness. All additive / idempotent.
+    ///
+    /// - `attempts` / `next_retry_at`: persisted backoff state so retries
+    ///   survive restart (DownloadTask.attempts / nextRetryAt).
+    /// - `cleared_at`: tombstone for clearFinished. Cleared rows stay in
+    ///   SQLite (history/debugging) but load() filters them out, so
+    ///   recovery can never resurrect an intentionally cleared task.
+    /// - `UNIQUE(source_url)`: database-level duplicate protection. One
+    ///   row per source URL; re-enqueue of the same URL updates the
+    ///   existing row instead of inserting a second active task.
+    ///   Pre-existing duplicates (from the pre-constraint era) are merged
+    ///   by migration code before the index is created (see below).
+    static let v5columns: [String] = [
+        "ALTER TABLE download_tasks ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;",
+        "ALTER TABLE download_tasks ADD COLUMN next_retry_at REAL;",
+        "ALTER TABLE download_tasks ADD COLUMN cleared_at REAL;",
+        "ALTER TABLE download_tasks ADD COLUMN profile_id TEXT;",
+    ]
+
+    /// Phase 4 workstream 4: per-job destination bookmarks. Destinations
+    /// outside the managed music subtree need their own persisted
+    /// security-scoped access; without it they silently break on relaunch.
+    static let v6columns: [String] = [
+        "ALTER TABLE sync_jobs ADD COLUMN destination_bookmark BLOB;",
+    ]
+
+    /// Dedupe + unique index. NOT in v5columns (needs multi-statement
+    /// logic): merge duplicate source_url rows keeping the most advanced
+    /// state, then create the unique index.
+    static func v5dedupe(database: Database) throws {
+        let rows = try database.query(
+            "SELECT id, source_url, state, updated_at FROM download_tasks WHERE cleared_at IS NULL ORDER BY updated_at;"
+        )
+        var best: [String: (id: String, rank: Int)] = [:]
+        func rank(_ state: String) -> Int {
+            switch state {
+            case "done": return 5
+            case "processing", "downloading", "resolving": return 4
+            case "pending": return 3
+            case "failed": return 2
+            case "cancelled": return 1
+            default: return 0
+            }
+        }
+        for row in rows {
+            guard let id = row["id"]?.text, let url = row["source_url"]?.text,
+                  let state = row["state"]?.text
+            else { continue }
+            let r = rank(state)
+            if let cur = best[url], cur.rank >= r { continue }
+            best[url] = (id, r)
+        }
+        let keep = Set(best.values.map(\.id))
+        let dupes = rows.compactMap { $0["id"]?.text }.filter { !keep.contains($0) }
+        for id in dupes {
+            // Tombstone rather than delete: preserves history, excluded
+            // from load() and from the unique index (partial index).
+            try database.execute(
+                "UPDATE download_tasks SET cleared_at=? WHERE id=?;",
+                [.real(Date().timeIntervalSince1970), .text(id)]
+            )
+        }
+        try database.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_source_url ON download_tasks(source_url) WHERE cleared_at IS NULL;"
+        )
+    }
+
+    /// Phase 4 workstream 5: library source-URL uniqueness. New installs
+    /// get it in DDL; existing installs converge via v7dedupe() below
+    /// (partial index; NULL/empty source URLs exempt — one-off imports
+    /// without provider metadata must never collide with each other).
+    static let v7objects: [String] = [
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tracks_source_url ON tracks(source_url) WHERE source_url IS NOT NULL AND source_url != '';",
+    ]
+
+    /// Merge pre-existing duplicate library tracks, then enforce the
+    /// partial unique index. Returns merged count (for logging/tests).
+    @discardableResult
+    static func v7dedupe(database: Database) throws -> Int {
+        let merged = try dedupeLibraryTracks(database: database)
+        for stmt in v7objects { try database.execute(stmt) }
+        return merged
+    }
+
+    /// Library track dedupe for re-imports: merge duplicate non-null
+    /// source_url rows, keeping the row with the most complete state
+    /// (has local_path > most recent update). Losers are deleted after
+    /// moving history + playlist membership to the winner.
+    /// Returns the number of merged duplicates.
+    @discardableResult
+    static func dedupeLibraryTracks(database: Database) throws -> Int {
+        let rows = try database.query(
+            "SELECT id, source_url, local_path, updated_at FROM tracks WHERE source_url IS NOT NULL AND source_url != '' ORDER BY updated_at;"
+        )
+        var byURL: [String: [[String: SQLiteValue]]] = [:]
+        for row in rows {
+            guard let url = row["source_url"]?.text else { continue }
+            byURL[url, default: []].append(row)
+        }
+        var merged = 0
+        for (_, group) in byURL where group.count > 1 {
+            // Winner: has a local path, then most recently updated.
+            let sorted = group.sorted {
+                let aHas = ($0["local_path"]?.text?.isEmpty == false) ? 1 : 0
+                let bHas = ($1["local_path"]?.text?.isEmpty == false) ? 1 : 0
+                if aHas != bHas { return aHas < bHas }
+                let aT = $0["updated_at"]?.real ?? 0
+                let bT = $1["updated_at"]?.real ?? 0
+                return aT < bT
+            }
+            guard let winner = sorted.last?["id"]?.text else { continue }
+            for loser in sorted.dropLast() {
+                guard let loserID = loser["id"]?.text else { continue }
+                // Re-point history + playlist membership to the winner.
+                // Order matters: move playlist rows first (OR IGNORE keeps
+                // the winner's position on conflict), delete leftovers,
+                // then history, then the loser row.
+                try database.execute(
+                    "UPDATE OR IGNORE playlist_tracks SET track_id=? WHERE track_id=?;",
+                    [.text(winner), .text(loserID)])
+                try database.execute("DELETE FROM playlist_tracks WHERE track_id=?;",
+                                     [.text(loserID)])
+                try database.execute(
+                    "UPDATE playback_history SET track_id=? WHERE track_id=?;",
+                    [.text(winner), .text(loserID)])
+                try database.execute("DELETE FROM tracks WHERE id=?;", [.text(loserID)])
+                merged += 1
+            }
+        }
+        return merged
+    }
 }
