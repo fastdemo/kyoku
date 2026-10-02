@@ -39,9 +39,12 @@ struct SongsView: View {
     }
 
     private var header: some View {
+        // No in-content title: the sidebar + window title already say
+        // "Songs". This bar holds only the sort controls.
         HStack {
-            Text("Songs")
-                .font(.largeTitle).fontWeight(.bold)
+            Text("\(sorted.count) song\(sorted.count == 1 ? "" : "s")")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Spacer()
             Picker("Sort", selection: $sort) {
                 ForEach(SortKey.allCases) { key in
@@ -57,7 +60,8 @@ struct SongsView: View {
             }
             .help(ascending ? "Ascending" : "Descending")
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
     }
 
     private var sorted: [Track] {

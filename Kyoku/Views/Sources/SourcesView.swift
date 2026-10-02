@@ -32,14 +32,18 @@ struct SourcesView: View {
     }
 
     private var header: some View {
+        // No in-content title: the sidebar + window title already say
+        // "Sources". This bar holds the count + primary action.
         HStack {
-            Text("Sources")
-                .font(.largeTitle).fontWeight(.bold)
+            Text("\(container.readySources.sources.count) source\(container.readySources.sources.count == 1 ? "" : "s")")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Spacer()
             Button("Add Source") { showingAdd = true }
                 .buttonStyle(.borderedProminent)
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
     }
 
     private var emptyState: some View {

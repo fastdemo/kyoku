@@ -75,6 +75,9 @@
 		53C9A3C149FA0ED452AA90B7 /* OnboardingSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37CAB767C694A750EBB51FC5 /* OnboardingSettingsTests.swift */; };
 		8241605D4C0DDDA4396D8F5D /* SandboxHardeningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F41BE97152D021066C908CD /* SandboxHardeningTests.swift */; };
 		B21F81FAB557B9C228C50029 /* ArtworkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422265F22C4A23593C8C4644 /* ArtworkStore.swift */; };
+		5249FD6B108CAE0C808DF5FE /* AddPlaylistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 166C102D18BAB40E3EE3F963 /* AddPlaylistView.swift */; };
+		B0683D02D3535EF34FC0CE38 /* PlaylistArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 601DA62E50EB4942448C1CD6 /* PlaylistArtwork.swift */; };
+		63890EB0281D383048CF0B77 /* PlaylistDestinations.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1AAC378FCE4403AB99F26B8 /* PlaylistDestinations.swift */; };
 		5A5D8EB42E4E67BC2DBC6A06 /* LibraryRobustnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3D03538D205883B6592EFB /* LibraryRobustnessTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -149,6 +152,9 @@
 		37CAB767C694A750EBB51FC5 /* OnboardingSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingSettingsTests.swift; path = KyokuTests/OnboardingSettingsTests.swift; sourceTree = SOURCE_ROOT; };
 		3F41BE97152D021066C908CD /* SandboxHardeningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SandboxHardeningTests.swift; path = KyokuTests/SandboxHardeningTests.swift; sourceTree = SOURCE_ROOT; };
 		422265F22C4A23593C8C4644 /* ArtworkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArtworkStore.swift; path = Kyoku/Core/Library/ArtworkStore.swift; sourceTree = SOURCE_ROOT; };
+		166C102D18BAB40E3EE3F963 /* AddPlaylistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AddPlaylistView.swift; path = Kyoku/Views/Library/AddPlaylistView.swift; sourceTree = SOURCE_ROOT; };
+		601DA62E50EB4942448C1CD6 /* PlaylistArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaylistArtwork.swift; path = Kyoku/Core/Library/PlaylistArtwork.swift; sourceTree = SOURCE_ROOT; };
+		E1AAC378FCE4403AB99F26B8 /* PlaylistDestinations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PlaylistDestinations.swift; path = Kyoku/Core/Library/PlaylistDestinations.swift; sourceTree = SOURCE_ROOT; };
 		7B3D03538D205883B6592EFB /* LibraryRobustnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LibraryRobustnessTests.swift; path = KyokuTests/LibraryRobustnessTests.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -282,6 +288,8 @@
 			isa = PBXGroup;
 			children = (
 				B100000000000000000000011 /* LibraryStore.swift */,
+				E1AAC378FCE4403AB99F26B8 /* PlaylistDestinations.swift */,
+				601DA62E50EB4942448C1CD6 /* PlaylistArtwork.swift */,
 				54B64F75AF9D28C6199D7533 /* FileMetadataReader.swift */,
 				422265F22C4A23593C8C4644 /* ArtworkStore.swift */,
 				3B7A4901BDE8B9F5412508E2 /* LibraryIdentity.swift */,
@@ -404,6 +412,7 @@
 				F77B4793A3E18A9960A32170 /* ArtistsView.swift */,
 				FCFC4D3F85D59C9DD63AFF87 /* ArtworkView.swift */,
 				9BBB44EE841D429AEF564E2A /* PlaylistsView.swift */,
+				166C102D18BAB40E3EE3F963 /* AddPlaylistView.swift */,
 				840642108DD5673041A47B4C /* RecentlyAddedView.swift */,
 				787845B5A237F80BE4F6BE89 /* SearchView.swift */,
 				16F74EE3BC857776B16D13E5 /* SongsView.swift */,
@@ -570,6 +579,9 @@
 				B41141C7A3DE62F25AB5900A /* LibraryIdentity.swift in Sources */,
 				CA704903A7FDCB401749CFB3 /* FileMetadataReader.swift in Sources */,
 				B21F81FAB557B9C228C50029 /* ArtworkStore.swift in Sources */,
+				5249FD6B108CAE0C808DF5FE /* AddPlaylistView.swift in Sources */,
+				B0683D02D3535EF34FC0CE38 /* PlaylistArtwork.swift in Sources */,
+				63890EB0281D383048CF0B77 /* PlaylistDestinations.swift in Sources */,
 				7A314A99AB3DD7D599598AB7 /* PlaybackService.swift in Sources */,
 				030CA29140138718545B4C29 /* PlaybackError.swift in Sources */,
 				85524BFB9D5788B2169A34B7 /* ArtworkView.swift in Sources */,

@@ -103,7 +103,10 @@ struct PlaylistsView: View {
     }
 }
 
-/// Ordered track list with drag reorder + play + remove.
+/// Playlist detail: Apple Music-style header (large artwork, title,
+/// source, counts, transport + sync status) over a clean track table.
+/// Used standalone from the sidebar; the legacy nested-split PlaylistsView
+/// above remains for in-place management until its migration completes.
 struct PlaylistDetailView: View {
     @EnvironmentObject private var container: AppContainer
     var playlist: Playlist
@@ -111,20 +114,7 @@ struct PlaylistDetailView: View {
     var body: some View {
         let tracks = container.readyLibrary.playlistTracks(id: playlist.id)
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(playlist.name).font(.title).fontWeight(.bold)
-                    Text("\(tracks.count) song\(tracks.count == 1 ? "" : "s")")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Button("Play") {
-                    if !tracks.isEmpty { container.player?.playTracks(tracks) }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(tracks.isEmpty)
-            }
-            .padding(20)
+            header(tracks: tracks)
             Divider()
             if tracks.isEmpty {
                 VStack(spacing: 8) {
@@ -136,16 +126,23 @@ struct PlaylistDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    ForEach(tracks) { track in
-                        TrackRow(track: track, context: tracks)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    container.readyLibrary.removeFromPlaylist(
-                                        playlistID: playlist.id, trackID: track.id)
-                                } label: {
-                                    Label("Remove", systemImage: "trash")
-                                }
+                    ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
+                        HStack(spacing: 10) {
+                            Text("\(index + 1)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .frame(width: 28, alignment: .trailing)
+                            TrackRow(track: track, context: tracks)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                container.readyLibrary.removeFromPlaylist(
+                                    playlistID: playlist.id, trackID: track.id)
+                            } label: {
+                                Label("Remove", systemImage: "trash")
                             }
+                        }
                     }
                     .onMove { source, dest in
                         var ids = tracks.map(\.id)
@@ -164,5 +161,91 @@ struct PlaylistDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .navigationTitle(playlist.name)
+    }
+
+    // MARK: - Header
+
+    private func header(tracks: [Track]) -> some View {
+        HStack(spacing: 20) {
+            ArtworkView(artworkPath: playlist.artworkPath,
+                        coverURL: tracks.first?.coverURL,
+                        localPath: nil, size: 160)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(playlist.name)
+                    .font(.largeTitle).fontWeight(.bold)
+                    .lineLimit(2)
+                if let sourceKind = linkedSourceKind {
+                    Text(sourceKind)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Text("\(tracks.count) song\(tracks.count == 1 ? "" : "s")")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if let syncStatus = linkedSyncStatus {
+                    Text(syncStatus)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                HStack(spacing: 8) {
+                    Button("Play") {
+                        if !tracks.isEmpty { container.player?.playTracks(tracks) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(tracks.isEmpty)
+                    Button("Shuffle") {
+                        if !tracks.isEmpty {
+                            container.player?.playTracks(tracks.shuffled())
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(tracks.isEmpty)
+                    if let jobID = playlist.syncJobID {
+                        Button("Sync Now") {
+                            SyncNowRunner.run(jobID: jobID, container: container)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .controlSize(.regular)
+                .padding(.top, 4)
+            }
+            Spacer()
+        }
+        .padding(24)
+    }
+
+    /// "Spotify Playlist" etc. from the backing Source row, if linked.
+    private var linkedSourceKind: String? {
+        guard let sourceID = playlist.sourceID,
+              let source = container.readySources.sources.first(where: { $0.id == sourceID })
+        else { return nil }
+        switch source.kind {
+        case "spotifyPlaylist": return "Spotify Playlist"
+        case "youTubePlaylist": return "YouTube Playlist"
+        case "youTubeMusicLink": return "YouTube Music"
+        case "spotifyAlbum": return "Spotify Album"
+        case "spotifyArtist": return "Spotify Artist"
+        case "spotifyTrack": return "Spotify Track"
+        case "youTubeVideo": return "YouTube Video"
+        default: return source.displayName.isEmpty ? nil : "Source"
+        }
+    }
+
+    /// "Last synced … · Daily" etc. from the linked sync job, if any.
+    private var linkedSyncStatus: String? {
+        guard let jobID = playlist.syncJobID,
+              let job = container.readySyncJobs.jobs.first(where: { $0.id == jobID })
+        else { return nil }
+        var parts: [String] = [job.schedule.label]
+        if let last = job.lastSuccessAt {
+            parts.append("Last synced \(last.formatted(.relative(presentation: .named)))")
+        }
+        if job.lastError != nil {
+            parts.append("Needs attention")
+        }
+        return parts.joined(separator: " · ")
     }
 }

@@ -290,6 +290,19 @@ enum Schema {
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_tracks_source_url ON tracks(source_url) WHERE source_url IS NOT NULL AND source_url != '';",
     ]
 
+    /// v8: imported-playlist linkage for the first-class Add Playlist
+    /// workflow. All nullable — manual playlists stay nil-linked.
+    /// - `source_id`: backing Source row (URL + kind + snapshots).
+    /// - `artwork_path`: locally cached remote playlist artwork.
+    /// - `sync_job_id`: auto-created sync job (nullable FK semantics via
+    ///   application logic; no hard FK so deleting a job never cascades to
+    ///   the playlist — the playlist survives, the link clears).
+    static let v8columns: [String] = [
+        "ALTER TABLE playlists ADD COLUMN source_id TEXT;",
+        "ALTER TABLE playlists ADD COLUMN artwork_path TEXT;",
+        "ALTER TABLE playlists ADD COLUMN sync_job_id TEXT;",
+    ]
+
     /// Merge pre-existing duplicate library tracks, then enforce the
     /// partial unique index. Returns merged count (for logging/tests).
     @discardableResult

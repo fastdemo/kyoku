@@ -20,6 +20,20 @@ final class DownloadQueue: ObservableObject {
     private let engine: any DownloadEngine
     private let library: LibraryStore
     private let musicFolderAccess: MusicFolderAccess
+    /// Resolves the download destination for a task: the owning sync job's
+    /// playlist folder when set, else the music root. Injected (not read
+    /// from SyncJobStore directly) so the queue never depends on
+    /// SyncJobStore (avoids a Core↔Core dependency). Nil = music root.
+    private let destinationForJob: (String?) -> URL?
+    /// Resolves the playlist linked to a sync job (Add Playlist workflow),
+    /// so completed downloads attach to it. Injected for the same
+    /// dependency reason. Nil = no playlist link (manual/one-off).
+    private let playlistIDForJob: ((String?) -> String?)?
+    /// Starts security-scoped access for a job's custom destination
+    /// (outside the music subtree) and returns a stop closure. Injected
+    /// for the same dependency reason. Nil = no extra access needed
+    /// (music root is covered by MusicFolderAccess's held access).
+    private let scopeForJob: ((String?) -> (() -> Void)?)?
     /// Resolves the default profile for one-off downloads. Sync jobs carry
     /// their own profileID; this is only the fallback. Injected (not read
     /// from AppSettings directly) so tests control it without UserDefaults.
@@ -53,12 +67,18 @@ final class DownloadQueue: ObservableObject {
         library: LibraryStore,
         musicFolderAccess: MusicFolderAccess,
         defaultProfile: @escaping () -> DownloadProfile = { .appleLibrary },
-        profileForJob: @escaping (String?) -> DownloadProfile? = { _ in nil }
+        profileForJob: @escaping (String?) -> DownloadProfile? = { _ in nil },
+        destinationForJob: @escaping (String?) -> URL? = { _ in nil },
+        playlistIDForJob: ((String?) -> String?)? = nil,
+        scopeForJob: ((String?) -> (() -> Void)?)? = nil
     ) {
         self.database = database
         self.engine = engine
         self.library = library
         self.musicFolderAccess = musicFolderAccess
+        self.destinationForJob = destinationForJob
+        self.playlistIDForJob = playlistIDForJob
+        self.scopeForJob = scopeForJob
         self.defaultProfile = defaultProfile
         // NOTE: fallback() is evaluated per-task at run() time (not here),
         // so changing the global default affects only tasks enqueued
@@ -271,9 +291,29 @@ final class DownloadQueue: ObservableObject {
             persist(tasks[index])
             return
         }
-        guard let destination = musicFolderAccess.folderURL else {
+        // Destination: the owning sync job's playlist folder when set
+        // (Add Playlist workflow), else the music root. The folder is
+        // created lazily here so empty playlist folders never litter the
+        // library when every download is skipped as a duplicate.
+        let root = musicFolderAccess.folderURL
+        let destination: URL
+        if let custom = destinationForJob(tasks[index].syncJobID), root != nil {
+            destination = custom
+        } else if let root {
+            destination = root
+        } else {
             tasks[index].state = .failed
             tasks[index].lastError = "Choose a music folder first (Settings)."
+            tasks[index].updatedAt = Date()
+            persist(tasks[index])
+            return
+        }
+        do {
+            try FileManager.default.createDirectory(
+                at: destination, withIntermediateDirectories: true)
+        } catch {
+            tasks[index].state = .failed
+            tasks[index].lastError = "Couldn't create the download folder."
             tasks[index].updatedAt = Date()
             persist(tasks[index])
             return
@@ -285,6 +325,9 @@ final class DownloadQueue: ObservableObject {
         persist(tasks[index])
         activeTaskID = task.id
         activeCancelRequested = false
+        // Scoped access for custom destinations (balanced stop in the
+        // settle path below — every start pairs with exactly one stop).
+        let stopScope = scopeForJob?(tasks[index].syncJobID)
         // Snapshot the destination dir so partial-file cleanup can tell
         // our new files apart from pre-existing ones.
         let beforeFiles = listAudioFiles(in: destination)
@@ -331,6 +374,9 @@ final class DownloadQueue: ObservableObject {
            tasks[index].state != .done {
             removeNewFiles(beforeFiles, in: destination)
         }
+        // Balance scoped access exactly once per run, after cleanup (which
+        // also touches the destination).
+        stopScope?()
         activeTaskID = nil
         activeProgress = nil
     }
@@ -351,6 +397,16 @@ final class DownloadQueue: ObservableObject {
             tasks[index].updatedAt = Date()
             persist(tasks[index])
             library.importFile(at: url, song: tasks[index].resolvedSong)
+            // Global library semantics: a completed download joins every
+            // playlist whose sync job owns this task (many-to-many; shared
+            // tracks download once, link everywhere). Playlist identity is
+            // resolved by syncJobID → playlist linkage, not by folder.
+            if let syncJobID = tasks[index].syncJobID,
+               let playlistID = playlistIDForJob?(syncJobID),
+               let sourceURL = tasks[index].resolvedSong?.url {
+                _ = library.linkTracksToPlaylist(playlistID: playlistID,
+                                                 sourceURLs: [sourceURL])
+            }
         }
         tasks[index].updatedAt = Date()
         persist(tasks[index])

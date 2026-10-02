@@ -6,11 +6,9 @@ struct ActivityView: View {
     @EnvironmentObject private var container: AppContainer
 
     var body: some View {
+        // No in-content title: the Automation disclosure + window title
+        // already say "Activity". Content starts with the feed.
         VStack(alignment: .leading, spacing: 0) {
-            Text("Activity")
-                .font(.largeTitle).fontWeight(.bold)
-                .padding(20)
-            Divider()
             let events = container.readyAutomation.recentActivity
             if events.isEmpty {
                 VStack(spacing: 8) {

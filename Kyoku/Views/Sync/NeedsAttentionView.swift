@@ -8,11 +8,9 @@ struct NeedsAttentionView: View {
     @EnvironmentObject private var container: AppContainer
 
     var body: some View {
+        // No in-content title: the Automation disclosure + window title
+        // already say "Needs Attention". Content starts with the inbox.
         VStack(alignment: .leading, spacing: 0) {
-            Text("Needs Attention")
-                .font(.largeTitle).fontWeight(.bold)
-                .padding(20)
-            Divider()
             let items = container.readyAutomation.openAttention
             if items.isEmpty {
                 VStack(spacing: 8) {

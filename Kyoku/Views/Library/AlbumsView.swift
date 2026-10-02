@@ -8,10 +8,6 @@ struct AlbumsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Albums")
-                .font(.largeTitle).fontWeight(.bold)
-                .padding(20)
-            Divider()
             if container.readyLibrary.albums.isEmpty {
                 emptyState
             } else {

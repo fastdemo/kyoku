@@ -11,13 +11,6 @@ struct SyncJobsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Text("Sync Jobs")
-                    .font(.largeTitle).fontWeight(.bold)
-                Spacer()
-            }
-            .padding(20)
-            Divider()
             if container.readySyncJobs.jobs.isEmpty {
                 emptyState
             } else {

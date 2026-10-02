@@ -16,7 +16,7 @@ final class Database {
     let path: String
     private let db: OpaquePointer
 
-    static let schemaVersion = 7
+    static let schemaVersion = 8
 
     /// Default on-disk location: <Application Support>/Kyoku/kyoku.sqlite.
     /// Single source of truth so Database.init and DatabaseBoot (backup /
@@ -301,6 +301,18 @@ final class Database {
                 // failure. KyokuLogger isn't available here; print is
                 // appropriate for a one-time migration note.
                 print("Kyoku migration v7: merged \(merged) duplicate track(s).")
+            }
+        }
+        if current < 8 {
+            // v8: imported-playlist linkage. Additive only; existing manual
+            // playlists keep nil linkage (they were user-built, not imports).
+            for stmt in Schema.v8columns {
+                do {
+                    try run(stmt, [])
+                } catch DatabaseError.stepFailed(let message)
+                    where message.contains("duplicate column name") {
+                    continue
+                }
             }
         }
         if current < Self.schemaVersion {

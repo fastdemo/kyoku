@@ -60,7 +60,10 @@ actor SpotDLEngine: DownloadEngine {
 
     // MARK: - DownloadEngine
 
-    func classifySource(_ input: String) -> SourceKind {
+    nonisolated func classifySource(_ input: String) -> SourceKind {
+        // Pure string matching, no actor state: nonisolated so SwiftUI
+        // views can call it synchronously (Add Source/Add Playlist
+        // subtitles). Matches AddSourceView's existing sync call pattern.
         let q = input.trimmingCharacters(in: .whitespacesAndNewlines)
         if q.hasSuffix(".spotdl") { return .spotdlFile }
         if q.contains("open.spotify.com") || q.hasPrefix("spotify:") {

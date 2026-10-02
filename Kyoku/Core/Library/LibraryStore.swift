@@ -452,8 +452,15 @@ final class LibraryStore: ObservableObject {
                 guard let id = row["id"]?.text, let name = row["name"]?.text else { return nil }
                 return Artist(id: id, name: name, artworkPath: row["artwork_path"]?.text)
             }
+            // v8-aware playlist search: linkage columns when present.
+            let plCols: String = {
+                let info = (try? database.query("PRAGMA table_info(playlists);")) ?? []
+                return Set(info.compactMap { $0["name"]?.text }).contains("source_id")
+                    ? "id, name, source_id, artwork_path, sync_job_id, created_at, updated_at"
+                    : "id, name, created_at, updated_at"
+            }()
             out.playlists = try database.query(
-                "SELECT id, name, created_at, updated_at FROM playlists WHERE name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?;",
+                "SELECT \(plCols) FROM playlists WHERE name LIKE ? ESCAPE '\\' ORDER BY name LIMIT ?;",
                 [.text(like), .integer(limitPerSection)]
             ).compactMap(Self.makePlaylist)
         } catch {
@@ -468,15 +475,32 @@ final class LibraryStore: ObservableObject {
         guard let id = row["id"]?.text, let name = row["name"]?.text else { return nil }
         return Playlist(
             id: id, name: name,
+            sourceID: row["source_id"]?.text,
+            artworkPath: row["artwork_path"]?.text,
+            syncJobID: row["sync_job_id"]?.text,
             createdAt: row["created_at"]?.real.map(Date.init(timeIntervalSince1970:)) ?? Date(),
             updatedAt: row["updated_at"]?.real.map(Date.init(timeIntervalSince1970:)) ?? Date()
         )
     }
 
     private func loadPlaylists() -> [Playlist] {
+        // v8 columns may not exist on pre-migration DBs in tests that
+        // build fixtures with raw SQL: select defensively.
+        let cols: String
+        do {
+            let info = try database.query("PRAGMA table_info(playlists);")
+            let names = Set(info.compactMap { $0["name"]?.text })
+            if names.contains("source_id") {
+                cols = "id, name, source_id, artwork_path, sync_job_id, created_at, updated_at"
+            } else {
+                cols = "id, name, created_at, updated_at"
+            }
+        } catch {
+            cols = "id, name, created_at, updated_at"
+        }
         do {
             return try database.query(
-                "SELECT id, name, created_at, updated_at FROM playlists ORDER BY name;"
+                "SELECT \(cols) FROM playlists ORDER BY name;"
             ).compactMap(Self.makePlaylist)
         } catch {
             logger.error("Playlists load failed: \(error.localizedDescription)")
@@ -485,20 +509,87 @@ final class LibraryStore: ObservableObject {
     }
 
     @discardableResult
-    func createPlaylist(name: String) -> Playlist {
-        let playlist = Playlist(name: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Playlist" : name)
+    func createPlaylist(name: String, sourceID: String? = nil,
+                        artworkPath: String? = nil,
+                        syncJobID: String? = nil) -> Playlist {
+        let playlist = Playlist(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Untitled Playlist" : name,
+            sourceID: sourceID, artworkPath: artworkPath, syncJobID: syncJobID)
         do {
-            try database.execute(
-                "INSERT INTO playlists (id, name, created_at, updated_at) VALUES (?, ?, ?, ?);",
-                [.text(playlist.id), .text(playlist.name),
-                 .real(playlist.createdAt.timeIntervalSince1970),
-                 .real(playlist.updatedAt.timeIntervalSince1970)]
-            )
+            // v8 columns are written when present; pre-v8 fixtures fall
+            // back to the base insert (same defensive rule as load).
+            let info = try database.query("PRAGMA table_info(playlists);")
+            let names = Set(info.compactMap { $0["name"]?.text })
+            if names.contains("source_id") {
+                try database.execute(
+                    "INSERT INTO playlists (id, name, source_id, artwork_path, sync_job_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?);",
+                    [.text(playlist.id), .text(playlist.name),
+                     playlist.sourceID.map(SQLiteValue.text) ?? .null,
+                     playlist.artworkPath.map(SQLiteValue.text) ?? .null,
+                     playlist.syncJobID.map(SQLiteValue.text) ?? .null,
+                     .real(playlist.createdAt.timeIntervalSince1970),
+                     .real(playlist.updatedAt.timeIntervalSince1970)]
+                )
+            } else {
+                try database.execute(
+                    "INSERT INTO playlists (id, name, created_at, updated_at) VALUES (?, ?, ?, ?);",
+                    [.text(playlist.id), .text(playlist.name),
+                     .real(playlist.createdAt.timeIntervalSince1970),
+                     .real(playlist.updatedAt.timeIntervalSince1970)]
+                )
+            }
         } catch {
             logger.error("Playlist create failed: \(error.localizedDescription)")
         }
         playlists = loadPlaylists()
         return playlist
+    }
+
+    /// Attach import linkage (source/artwork/job) to an existing playlist.
+    /// Used by Add Playlist after the sync job exists. No-op on pre-v8 DBs.
+    func setPlaylistImportLinkage(id: String, sourceID: String?,
+                                  artworkPath: String?, syncJobID: String?) {
+        do {
+            let info = try database.query("PRAGMA table_info(playlists);")
+            guard Set(info.compactMap { $0["name"]?.text }).contains("source_id") else { return }
+            try database.execute(
+                "UPDATE playlists SET source_id=?, artwork_path=?, sync_job_id=?, updated_at=? WHERE id=?;",
+                [sourceID.map(SQLiteValue.text) ?? .null,
+                 artworkPath.map(SQLiteValue.text) ?? .null,
+                 syncJobID.map(SQLiteValue.text) ?? .null,
+                 .real(Date().timeIntervalSince1970), .text(id)])
+        } catch {
+            logger.error("Playlist linkage failed: \(error.localizedDescription)")
+            return
+        }
+        playlists = loadPlaylists()
+    }
+
+    /// Attach freshly downloaded tracks (by sourceURL) to a playlist.
+    /// Many-to-many: shared tracks link into every playlist that contains
+    /// them — never duplicated. Returns the number linked.
+    @discardableResult
+    func linkTracksToPlaylist(playlistID: String, sourceURLs: [String]) -> Int {
+        let ids = tracks.filter { $0.sourceURL.map(sourceURLs.contains) ?? false }.map(\.id)
+        guard !ids.isEmpty else { return 0 }
+        addToPlaylist(playlistID: playlistID, trackIDs: ids)
+        return ids.count
+    }
+
+    /// Clear a playlist's sync-job link (job deleted, playlist survives as
+    /// a manual list). The backing Source row is left intact.
+    func clearPlaylistSyncLink(id: String) {
+        do {
+            let info = try database.query("PRAGMA table_info(playlists);")
+            guard Set(info.compactMap { $0["name"]?.text }).contains("sync_job_id") else { return }
+            try database.execute(
+                "UPDATE playlists SET sync_job_id=NULL, updated_at=? WHERE id=?;",
+                [.real(Date().timeIntervalSince1970), .text(id)])
+        } catch {
+            logger.error("Playlist unlink failed: \(error.localizedDescription)")
+            return
+        }
+        playlists = loadPlaylists()
     }
 
     func renamePlaylist(id: String, name: String) {

@@ -115,6 +115,8 @@ final class AppContainer: ObservableObject {
         self.engineRunner = runner
         let downloads: any DownloadEngine = SpotDLEngine(runner: runner)
         let musicFolderAccess = MusicFolderAccess(settings: settings)
+        let sources = SourceStore(database: db)
+        let syncJobs = SyncJobStore(database: db)
         let queue = DownloadQueue(
             database: db,
             engine: downloads,
@@ -127,10 +129,54 @@ final class AppContainer: ObservableObject {
                 // arrive in a later phase). Unknown IDs fall back to default.
                 guard let profileID else { return nil }
                 return DownloadProfile.builtins.first { $0.id == profileID }
+            },
+            destinationForJob: { [weak syncJobs] jobID in
+                // Playlist-folder destinations (Add Playlist workflow):
+                // absolute path stored on the job. Empty = music root
+                // (nil → caller falls back). Inside-root folders are
+                // covered by MusicFolderAccess's held access.
+                // SyncJobStore is @MainActor and the queue runs on it too:
+                // MainActor.assumeIsolated bridges the sync closure.
+                guard let jobID else { return nil }
+                var path: String?
+                MainActor.assumeIsolated {
+                    path = syncJobs?.jobs.first(where: { $0.id == jobID })?.destination
+                }
+                guard let path, !path.isEmpty else { return nil }
+                return URL(fileURLWithPath: path, isDirectory: true)
+            },
+            playlistIDForJob: { [weak library] jobID in
+                guard let jobID else { return nil }
+                var id: String?
+                MainActor.assumeIsolated {
+                    id = library?.playlists.first(where: { $0.syncJobID == jobID })?.id
+                }
+                return id
+            },
+            scopeForJob: { [weak syncJobs] jobID in
+                // Security-scoped access for custom destinations outside
+                // the music subtree (their own persisted bookmark).
+                // Inside-root folders need nothing extra. Returns a stop
+                // closure the queue calls after the download settles.
+                guard let jobID else { return nil }
+                var data: Data?
+                MainActor.assumeIsolated {
+                    data = syncJobs?.jobs.first(where: { $0.id == jobID })?.destinationBookmark
+                }
+                guard let data else { return nil }
+                do {
+                    var stale = false
+                    let url = try URL(resolvingBookmarkData: data,
+                                      options: .withSecurityScope,
+                                      relativeTo: nil,
+                                      bookmarkDataIsStale: &stale)
+                    guard url.startAccessingSecurityScopedResource() else { return nil }
+                    return { url.stopAccessingSecurityScopedResource() }
+                } catch {
+                    return nil
+                }
             }
         )
-        let sources = SourceStore(database: db)
-        let syncJobs = SyncJobStore(database: db)
         let automation = AutomationRecordStore(database: db)
         let scheduler = SyncScheduler2()
         let syncEngine = SyncEngine(

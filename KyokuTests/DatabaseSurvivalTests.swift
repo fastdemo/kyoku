@@ -42,6 +42,7 @@ final class DatabaseSurvivalTests: XCTestCase {
             if version >= 4 { s.append(Schema.v4tables); s.append(Schema.v4columns) }
             if version >= 5 { s.append(Schema.v5columns) }
             if version >= 6 { s.append(Schema.v6columns) }
+            if version >= 8 { s.append(Schema.v8columns) }
             return s
         }()
         for slice in slices {
@@ -288,10 +289,10 @@ final class DatabaseSurvivalTests: XCTestCase {
         try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let live = dir.appendingPathComponent("kyoku.sqlite")
         try! Data("x".utf8).write(to: live)
-        let first = try! DatabaseBoot.backupDatabase(at: live.path, reason: "pre-migration-v1-to-v7")
+        let first = try! DatabaseBoot.backupDatabase(at: live.path, reason: "pre-migration-v1-to-v8")
         // Re-create live (a second backup of the same second must suffix).
         try! Data("x".utf8).write(to: live)
-        let second = try! DatabaseBoot.backupDatabase(at: live.path, reason: "pre-migration-v1-to-v7")
+        let second = try! DatabaseBoot.backupDatabase(at: live.path, reason: "pre-migration-v1-to-v8")
         XCTAssertNotEqual(first.path, second.path)
         XCTAssertTrue(second.lastPathComponent.hasSuffix("-1"))
         XCTAssertTrue(FileManager.default.fileExists(atPath: first.path))
@@ -324,10 +325,10 @@ final class DatabaseSurvivalTests: XCTestCase {
     func testPreMigrationBackupIsCreated() throws {
         let path = freshPath()
         try makeVersionedDB(version: 2, at: path)
-        _ = try Database(path: path) // migrates v2→v7; backup expected
+        _ = try Database(path: path) // migrates v2→v8; backup expected
         let parent = URL(fileURLWithPath: path).deletingLastPathComponent()
         let backups = (try? FileManager.default.contentsOfDirectory(atPath: parent.path))?
-            .filter { $0.contains("pre-migration-v2-to-v7") } ?? []
+            .filter { $0.contains("pre-migration-v2-to-v8") } ?? []
         XCTAssertFalse(backups.isEmpty, "expected a pre-migration backup, found none")
         // Backup is a COMPLETE database (reopenable + passes integrity).
         for name in backups {
@@ -367,7 +368,7 @@ final class DatabaseSurvivalTests: XCTestCase {
         }
         let parent = URL(fileURLWithPath: path).deletingLastPathComponent()
         let backups = (try? FileManager.default.contentsOfDirectory(atPath: parent.path))?
-            .filter { $0.contains("pre-migration-v2-to-v7") } ?? []
+            .filter { $0.contains("pre-migration-v2-to-v8") } ?? []
         XCTAssertFalse(backups.isEmpty, "failed migration must leave its pre-migration backup")
     }
 
@@ -458,31 +459,35 @@ final class DatabaseSurvivalTests: XCTestCase {
 
     // MARK: - 14–20. Migration coverage v1..v7
 
-    func testV1ToV7Migration() async throws {
+    func testV1ToV8Migration() async throws {
         try await assertMigration(from: 1, tag: "v1")
     }
 
-    func testV2ToV7Migration() async throws {
+    func testV2ToV8Migration() async throws {
         try await assertMigration(from: 2, tag: "v2")
     }
 
-    func testV3ToV7Migration() async throws {
+    func testV3ToV8Migration() async throws {
         try await assertMigration(from: 3, tag: "v3")
     }
 
-    func testV4ToV7Migration() async throws {
+    func testV4ToV8Migration() async throws {
         try await assertMigration(from: 4, tag: "v4")
     }
 
-    func testV5ToV7Migration() async throws {
+    func testV5ToV8Migration() async throws {
         try await assertMigration(from: 5, tag: "v5")
     }
 
-    func testV6ToV7Migration() async throws {
+    func testV6ToV8Migration() async throws {
         try await assertMigration(from: 6, tag: "v6")
     }
 
-    func testV7OpensWithoutMigration() throws {
+    func testV7ToV8Migration() async throws {
+        try await assertMigration(from: 7, tag: "v7")
+    }
+
+    func testV8OpensWithoutMigration() throws {
         let path = freshPath()
         _ = try Database(path: path)
         let parent = URL(fileURLWithPath: path).deletingLastPathComponent()
@@ -492,9 +497,9 @@ final class DatabaseSurvivalTests: XCTestCase {
         // No pre-migration backup on a current-version open (only -wal/-shm
         // sidecars may appear/disappear).
         let newBackups = after.subtracting(before).filter { $0.contains("pre-migration") }
-        XCTAssertTrue(newBackups.isEmpty, "v7 reopen must not migrate: \(newBackups)")
+        XCTAssertTrue(newBackups.isEmpty, "v8 reopen must not migrate: \(newBackups)")
         let version = try Database(path: path).query("PRAGMA user_version;").first?.values.first?.integer
-        XCTAssertEqual(version, 7)
+        XCTAssertEqual(version, 8)
     }
 
     private func assertMigration(from version: Int, tag: String) async throws {
@@ -510,7 +515,7 @@ final class DatabaseSurvivalTests: XCTestCase {
 
         let db = try Database(path: path)
         let actual = try db.query("PRAGMA user_version;").first?.values.first?.integer
-        XCTAssertEqual(actual, 7, "\(tag): must land on v7")
+        XCTAssertEqual(actual, 8, "\(tag): must land on v8")
 
         // Preserved user data (era-appropriate).
         let titles = try db.query("SELECT title FROM tracks ORDER BY title;").compactMap { $0["title"]?.text }
@@ -546,8 +551,63 @@ final class DatabaseSurvivalTests: XCTestCase {
             }
             XCTAssertEqual(found, Data([0x01, 0x02, 0x03]), "\(tag): bookmark bytes lost")
         }
+        if version >= 8 || version == 7 {
+            // v8 linkage columns exist on v7→v8 migrated DBs and fresh v8.
+            let cols = try db.query("PRAGMA table_info(playlists);").compactMap { $0["name"]?.text }
+            XCTAssertTrue(cols.contains("source_id"), "\(tag): v8 source_id missing")
+            XCTAssertTrue(cols.contains("artwork_path"), "\(tag): v8 artwork_path missing")
+            XCTAssertTrue(cols.contains("sync_job_id"), "\(tag): v8 sync_job_id missing")
+        }
         // Health: migrated DB verifies clean.
         XCTAssertNoThrow(try db.verify(), "\(tag): migrated DB must verify")
+    }
+
+    func testV8PlaylistLinkageRoundTrip() throws {
+        // Imported-playlist linkage survives a reopen: source/artwork/job
+        // IDs persist and load back through LibraryStore.
+        let path = freshPath()
+        let db = try Database(path: path)
+        let store = LibraryStore(database: db)
+        let created = store.createPlaylist(name: "Linked", sourceID: "s1",
+                                           artworkPath: "/tmp/art.jpg",
+                                           syncJobID: "j1")
+        XCTAssertEqual(created.sourceID, "s1")
+        XCTAssertEqual(created.artworkPath, "/tmp/art.jpg")
+        XCTAssertEqual(created.syncJobID, "j1")
+        let store2 = LibraryStore(database: db)
+        let loaded = store2.playlists.first(where: { $0.id == created.id })
+        XCTAssertEqual(loaded?.sourceID, "s1")
+        XCTAssertEqual(loaded?.artworkPath, "/tmp/art.jpg")
+        XCTAssertEqual(loaded?.syncJobID, "j1")
+        // Clearing the job link keeps the playlist + source link.
+        store2.clearPlaylistSyncLink(id: created.id)
+        let unlinked = LibraryStore(database: db).playlists.first(where: { $0.id == created.id })
+        XCTAssertNil(unlinked?.syncJobID)
+        XCTAssertEqual(unlinked?.sourceID, "s1")
+    }
+
+    func testPlaylistDestinationPolicy() throws {
+        // Folder naming: sanitize, cap, collide-suffix, rename-never-moves.
+        XCTAssertEqual(PlaylistDestinations.safeFolderName(for: "Anime Openings"), "Anime Openings")
+        XCTAssertEqual(PlaylistDestinations.safeFolderName(for: "A/B:C"), "A-B-C")
+        XCTAssertEqual(PlaylistDestinations.safeFolderName(for: "   "), "Untitled Playlist")
+        XCTAssertEqual(PlaylistDestinations.safeFolderName(for: String(repeating: "x", count: 200)).count, 100)
+        let root = tmpDir.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try! FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let first = PlaylistDestinations.resolve(playlistName: "Mix", musicRoot: root)
+        XCTAssertTrue(first.hasSuffix("/Mix"))
+        // Simulate a taken folder owned by another playlist: suffix.
+        try! FileManager.default.createDirectory(atPath: first,
+                                                 withIntermediateDirectories: true,
+                                                 attributes: nil)
+        try! Data("x".utf8).write(to: URL(fileURLWithPath: first + "/track.m4a"))
+        let second = PlaylistDestinations.resolve(playlistName: "Mix 2", musicRoot: root)
+        XCTAssertTrue(second.hasSuffix("/Mix 2"), "unrelated non-empty dir must not merge: \(second)")
+        // Same playlist re-resolving its own non-empty folder is fine.
+        let same = PlaylistDestinations.resolve(playlistName: "Mix", musicRoot: root,
+                                                existingDestinations: [first: "Mix"])
+        XCTAssertEqual(same, first)
+        XCTAssertEqual(PlaylistDestinations.resolve(playlistName: "X", musicRoot: nil), "")
     }
 
     // MARK: - 21/22. v7 dedupe preserves relations

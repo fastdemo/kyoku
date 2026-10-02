@@ -25,10 +25,12 @@ struct QueueView: View {
     }
 
     private var header: some View {
+        // No in-content title: the sidebar + window title already say
+        // "Queue". This bar holds the live count + Clear Finished.
         HStack {
-            Text("Download Queue")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+            Text(queueStatusLine)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Spacer()
             if hasFinished {
                 Button("Clear Finished") {
@@ -36,8 +38,21 @@ struct QueueView: View {
                 }
             }
         }
-        .padding(24)
-        .padding(.bottom, 0)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+    }
+
+    private var queueStatusLine: String {
+        let tasks = container.readyQueue.tasks
+        guard !tasks.isEmpty else { return "No downloads" }
+        let active = tasks.filter {
+            $0.state == .pending || $0.state == .resolving
+                || $0.state == .downloading || $0.state == .processing
+        }.count
+        if active > 0 {
+            return "\(active) active · \(tasks.count) total"
+        }
+        return "\(tasks.count) finished"
     }
 
     private var hasFinished: Bool {
